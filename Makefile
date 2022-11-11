@@ -51,7 +51,7 @@ publish: ## Publishes image directly using ko
 		ko build . --image-refs ./image-digest --bare --tags $(VERSION),latest
 	COSIGN_EXPERIMENTAL=1 \
 		cosign sign --force $(shell cat ./image-digest)
-	grype <image> --scope all-layers
+	# grype <image> --scope all-layers
 .PHONY: publish
 
 verify: ## Verify previously signed image
