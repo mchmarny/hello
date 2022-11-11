@@ -29,8 +29,9 @@ steps:
     args:
     - -c
     - |
-      docker push ${_REPO_LOCATION}-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/$_APP_NAME:$COMMIT_SHA &&
-      docker image inspect ${_REPO_LOCATION}-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/$_APP_NAME:$COMMIT_SHA --format '{{index .RepoDigests 0}}' > image-digest.txt && cat image-digest.txt
+      echo '${_REPO_LOCATION}-docker.pkg.dev/${PROJECT_ID}/${_REPO_NAME}/${_APP_NAME}:${COMMIT_SHA}' &&
+      docker push ${_REPO_LOCATION}-docker.pkg.dev/${PROJECT_ID}/${_REPO_NAME}/${_APP_NAME}:${COMMIT_SHA} &&
+      docker image inspect ${_REPO_LOCATION}-docker.pkg.dev/${PROJECT_ID}/${_REPO_NAME}/${_APP_NAME}:${COMMIT_SHA} --format '{{index .RepoDigests 0}}' > image-digest.txt && cat image-digest.txt
     id: publish
 
   # Test against my vulnerability policy
