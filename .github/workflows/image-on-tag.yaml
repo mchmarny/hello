@@ -1,0 +1,90 @@
+name: publish
+
+on:  
+  push:
+    tags:
+      - 'v*.*.*'
+  
+jobs:
+
+  test:
+    uses: ./.github/workflows/test-on-call.yaml
+    secrets:
+      config: ${{ secrets.FOLLOWME_CONFIG }}
+
+  push:
+    runs-on: ubuntu-latest
+    needs: test
+    permissions:
+      contents: read
+      id-token: write
+    # TODO: implement outputs in the ko publish steps
+    # outputs:
+    #   app: ${{ steps.pub-app.outputs.sha }}
+    #   worker: ${{ steps.pub-worker.outputs.sha }}
+    steps:
+
+    - name: Setup Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: '1.19'
+    - run: go version
+
+    - name: Cache Go Modules
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cache/go-build
+          ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Capture Variables
+      run: |
+        echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+        
+    - id: auth
+      name: Get GCP token
+      uses: google-github-actions/auth@v1
+      with:
+          token_format: "access_token"
+          workload_identity_provider: ${{ secrets.IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.SERVICE_ACCOUNT }}
+
+    - name: Install Ko
+      uses: imjasonh/setup-ko@v0.6
+        
+    - name: Login With ko
+      run: |
+        ko version
+        ko login gcr.io --username=oauth2accesstoken --password=${{ steps.auth.outputs.access_token }}
+
+    - name: Tidy Modules
+      run: |
+        make tidy
+
+    - id: publish
+      name: Publish App Image
+      run: |
+        ko build ./cmd/app/ --image-refs ./image-digest --bare --tags ${{ env.RELEASE_VERSION }},latest
+      env:
+        KO_DOCKER_REPO: ${{ secrets.REGISTRY }}/${{ secrets.PROJECT_ID }}/hello/hello
+        GOFLAGS: "-ldflags=-X=main.version=${{ env.RELEASE_VERSION }}"
+
+    - name: Install Cosign
+      uses: sigstore/cosign-installer@main
+      with:
+        cosign-release: 'v1.13.1'
+
+    - name: Check install
+      run: cosign version
+
+    - name: Sign Image
+      run: |
+        cosign sign --force $(cat ./image-digest) 
+      env:
+        COSIGN_EXPERIMENTAL: 1
