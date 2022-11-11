@@ -12,5 +12,3 @@ jobs:
 
   test:
     uses: ./.github/workflows/test-on-call.yaml
-    secrets:
-      config: ${{ secrets.FOLLOWME_CONFIG }}
