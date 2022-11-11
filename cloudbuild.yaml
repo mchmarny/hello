@@ -51,6 +51,7 @@ steps:
 
   # Create release in Google Cloud Deploy
   - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    id: release
     entrypoint: /bin/bash
     args:
     - -c
