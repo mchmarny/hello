@@ -3,8 +3,6 @@
 # Requires git commit triggering to populate COMMIT_SHA variable
 
 substitutions:
-  _REPO_NAME: cloudbuild-go-demo
-  _REPO_LOCATION: us-west1
   _APP_NAME: hello
   _PIPELINE_NAME: demo-pipeline
   _POOL_NAME: demo-pool
@@ -21,18 +19,20 @@ steps:
   # Build image
   - name: gcr.io/cloud-builders/docker
     id: build
-    args: ['build', '-t', '${_REPO_LOCATION}-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/$_APP_NAME:$COMMIT_SHA', '.']
+    args: ['build', '-t', '${LOCATION}-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$_APP_NAME:$COMMIT_SHA', '.']
   
   # Publish image, get sha256
   - name: gcr.io/cloud-builders/docker
+    id: publish
     entrypoint: /bin/bash
     args:
     - -c
     - |
-      echo '${_REPO_LOCATION}-docker.pkg.dev/${PROJECT_ID}/${_REPO_NAME}/${_APP_NAME}:${COMMIT_SHA}' &&
-      docker push ${_REPO_LOCATION}-docker.pkg.dev/${PROJECT_ID}/${_REPO_NAME}/${_APP_NAME}:${COMMIT_SHA} &&
-      docker image inspect ${_REPO_LOCATION}-docker.pkg.dev/${PROJECT_ID}/${_REPO_NAME}/${_APP_NAME}:${COMMIT_SHA} --format '{{index .RepoDigests 0}}' > image-digest.txt && cat image-digest.txt
-    id: publish
+      docker push $IMAGE_TAG &&
+      docker image inspect $IMAGE_TAG --format '{{index .RepoDigests 0}}' > image-digest.txt && 
+      cat image-digest.txt
+    env:
+    - 'IMAGE_TAG=${LOCATION}-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$_APP_NAME:$COMMIT_SHA'
 
   # Test against my vulnerability policy
   - name: gcr.io/$PROJECT_ID/kritis-signer
@@ -66,8 +66,8 @@ steps:
     waitFor: ['vulnsign']
 
 images:
-- ${_REPO_LOCATION}-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/$_APP_NAME:$COMMIT_SHA
+- ${LOCATION}-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$_APP_NAME:$COMMIT_SHA
 options:
   requestedVerifyOption: VERIFIED
   pool:
-    name: 'projects/$PROJECT_ID/locations/$_REPO_LOCATION/workerPools/$_POOL_NAME'
+    name: 'projects/$PROJECT_ID/locations/$LOCATION/workerPools/$_POOL_NAME'
