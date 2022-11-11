@@ -1,5 +1,5 @@
 VERSION   ?=$(shell cat .version)
-PROJECT ?=cloudy-demos
+PROJECT   ?=cloudy-demos
 REGISTRY  ?=us-west1-docker.pkg.dev
 
 all: help

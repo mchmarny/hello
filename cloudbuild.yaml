@@ -1,37 +1,41 @@
 # WORK IN PROGRESS
 # Overview: release via Google Cloud Deploy for GKE
 # Requires git commit triggering to populate COMMIT_SHA variable
+
 substitutions:
   _REPO_NAME: cloudbuild-go-demo
+  _REPO_LOCATION: us-west1
   _APP_NAME: hello
-  _PIPELINE_NAME: security-demo-pipeline
+  _PIPELINE_NAME: demo-pipeline
+  _POOL_NAME: demo-pool
+
 steps:
-  # lint
-  - name: lint
-    entrypoint: mvn
-    args: ["verify"]
-    dir: ${_APP_NAME}
-  # build app with Maven
-  - name: maven:3-eclipse-temurin-17
-    entrypoint: mvn
-    args: ["package", "-Dmaven.test.skip=true"]
-    dir: ${_APP_NAME}
-  # Build and tag using commit sha
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '.', '-t', 'us-west1-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/${_APP_NAME}:${COMMIT_SHA}', '-f', 'Dockerfile']
-    dir: ${_APP_NAME}
-  # Push the container image to Artifact Registry, get sha256 of the image
+  # Go test
+  - name: golang:1.19
+    id: test
+    env:
+      - GO111MODULE=on
+    entrypoint: /bin/bash
+    args: ["-c", "make test"]
+        
+  # Build image
+  - name: gcr.io/cloud-builders/docker
+    id: build
+    args: ['build', '-t', '${_REPO_LOCATION}-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/$_APP_NAME:$COMMIT_SHA', '.']
+  
+  # Publish image, get sha256
   - name: gcr.io/cloud-builders/docker
     entrypoint: /bin/bash
     args:
     - -c
     - |
-      docker push us-west1-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/${_APP_NAME}:${COMMIT_SHA} &&
-      docker image inspect us-west1-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/${_APP_NAME}:${COMMIT_SHA} --format '{{index .RepoDigests 0}}' > image-digest.txt &&
-      cat image-digest.txt
-    id: push
-    # Test against my vulnerability policy
+      docker push ${_REPO_LOCATION}-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/$_APP_NAME:$COMMIT_SHA &&
+      docker image inspect ${_REPO_LOCATION}-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/$_APP_NAME:$COMMIT_SHA --format '{{index .RepoDigests 0}}' > image-digest.txt && cat image-digest.txt
+    id: publish
+
+  # Test against my vulnerability policy
   - name: gcr.io/$PROJECT_ID/kritis-signer
+    id: vulnsign
     entrypoint: /bin/bash
     args:
     - -c
@@ -44,8 +48,9 @@ steps:
       -kms_key_name=${_KMS_KEY_NAME} \
       -kms_digest_alg=${_KMS_DIGEST_ALG} \
       -note_name=${_NOTE_NAME}
-    waitFor: ['push']
-    id: vulnsign
+    waitFor: ['publish']
+    
+
   # Create release in Google Cloud Deploy
   - name: gcr.io/google.com/cloudsdktool/cloud-sdk
     entrypoint: /bin/bash
@@ -58,9 +63,10 @@ steps:
       --annotations=commitId=${REVISION_ID} \
       --images=${_APP_NAME}=$(/bin/cat image-digest.txt)
     waitFor: ['vulnsign']
+
 images:
-- us-west1-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/${_APP_NAME}:${COMMIT_SHA}
+- ${_REPO_LOCATION}-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/$_APP_NAME:$COMMIT_SHA
 options:
   requestedVerifyOption: VERIFIED
   pool:
-    name: 'projects/$PROJECT_ID/locations/us-west1/workerPools/private-pool'
+    name: 'projects/$PROJECT_ID/locations/$_REPO_LOCATION/workerPools/$_POOL_NAME'
