@@ -24,3 +24,5 @@ spec:
             value: "Local Dev"
         securityContext:
           allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 10001
