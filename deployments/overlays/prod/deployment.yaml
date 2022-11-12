@@ -11,4 +11,4 @@ spec:
           - name: PORT
             value: "8080"
           - name: TARGET
-            value: "Production cluster"              
+            value: "Production cluster"
