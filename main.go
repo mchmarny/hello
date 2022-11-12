@@ -16,7 +16,7 @@ var (
 )
 
 func main() {
-	log.Printf("starting %s", version)
+	log.Printf("starting server %s", version)
 	address := ADDRESS_DEFAULT
 	if val, ok := os.LookupEnv(PORT_KEY); ok {
 		address = fmt.Sprintf(":%s", val)

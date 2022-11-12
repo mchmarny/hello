@@ -3,11 +3,13 @@ kind: Config
 metadata:
   name: hello
 build:
+  # local:
+  #   push: false
   artifacts:
   - image: hello
-    context: hello
+    context: .
     docker:
-      dockerfile: Dockerfile    
+      dockerfile: Dockerfile
     sync:
       infer: ["**/*"]
 deploy:

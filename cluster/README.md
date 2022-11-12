@@ -3,7 +3,7 @@
 Create cluster 
 
 ```shell
-kind create cluster --name=dev --config=cluster/kind-config.yaml
+cluster/cluster-up
 ```
 
 Get context
