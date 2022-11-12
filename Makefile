@@ -54,6 +54,11 @@ publish: ## Publishes image directly using ko
 	# grype <image> --scope all-layers
 .PHONY: publish
 
+image: ## Build local image using Docker
+	docker build --build-arg VERSION=${VERSION} \
+		-t $(REGISTRY)/$(PROJECT)/hello/hello:$(VERSION) .
+.PHONY: image
+
 verify: ## Verify previously signed image
 	cosign verify --key cosign.pub $(shell cat ./image-digest)
 .PHONY: verify
