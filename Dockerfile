@@ -5,13 +5,16 @@ FROM golang:latest as builder
 WORKDIR /src/
 COPY . /src/
 
+# runtime args
+ARG VERSION=v0.0.1-default
+
+# args to env vars
+ENV VERSION=${VERSION} GO111MODULE=on
+
 # build
-ENV GO111MODULE=on
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
-    go build -a -tags netgo \
-    -ldflags '-w -extldflags "-static"' \
-    -mod vendor \
-    -o app
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath \
+    -ldflags="-w -s -X main.version=${VERSION} -extldflags '-static'" \
+    -a -mod vendor -o app
 
 # RUN
 FROM gcr.io/distroless/static

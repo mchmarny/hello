@@ -19,7 +19,11 @@ steps:
   # Build image
   - name: gcr.io/cloud-builders/docker
     id: build
-    args: ['build', '-t', '${LOCATION}-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$_APP_NAME:$COMMIT_SHA', '.']
+    entrypoint: /bin/bash
+    args:
+    - -c
+    - |
+      docker build --build-arg VERSION=${TAG_NAME} -t ${LOCATION}-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$_APP_NAME:$COMMIT_SHA .
   
   # Publish image, get sha256
   - name: gcr.io/cloud-builders/docker
