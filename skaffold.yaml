@@ -1,0 +1,43 @@
+apiVersion: skaffold/v2beta26
+kind: Config
+metadata:
+  name: hello
+build:
+  # local: 
+  #   push: false
+  artifacts:
+  - image: hello
+    context: hello
+    docker:
+      dockerfile: Dockerfile    
+    sync:
+      auto: true      
+deploy:
+  kustomize:
+    paths:
+      - deployments/overlays/dev
+profiles:
+  - name: cloud-dev
+    deploy:
+      kustomize:
+        paths:
+          - deployments/overlays/cloud-dev
+  - name: test
+    deploy:
+      kustomize:
+        paths:
+          - deployments/overlays/test
+  - name: staging
+    deploy:
+      kustomize:
+        paths:
+          - deployments/overlays/staging
+  - name: prod
+    deploy:
+      kustomize:
+        paths:
+          - deployments/overlays/prod
+portForward:
+- resourceType: deployment
+  resourceName: hello
+  port: 8080
