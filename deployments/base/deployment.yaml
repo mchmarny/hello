@@ -23,5 +23,4 @@ spec:
           - name: TARGET
             value: "Local Dev"
         securityContext:
-          runAsUser: 2000
           allowPrivilegeEscalation: false
