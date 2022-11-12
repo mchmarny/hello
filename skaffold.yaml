@@ -7,27 +7,29 @@ build:
   - image: hello
     context: hello
     docker:
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile    
+    sync:
+      auto: true      
 deploy:
   kustomize:
     paths:
       - deployments/overlays/dev
 profiles:
-- name: base
-  manifests:
-    kustomize:
-      paths:
-      - deployments/base
-- name: prod
-  manifests:
-    kustomize:
-      paths:
-      - deployments/overlays/prod
-- name: test
-  manifests:
-    kustomize:
-      paths:
-      - deployments/overlays/test
+  - name: dev
+    deploy:
+      kustomize:
+        paths:
+          - deployments/overlays/dev
+  - name: test
+    deploy:
+      kustomize:
+        paths:
+          - deployments/overlays/test
+  - name: prod
+    deploy:
+      kustomize:
+        paths:
+          - deployments/overlays/prod
 portForward:
 - resourceType: deployment
   resourceName: hello
