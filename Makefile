@@ -1,6 +1,7 @@
 VERSION   ?=$(shell cat .version)
 PROJECT   ?=cloudy-demos
 REGISTRY  ?=us-west1-docker.pkg.dev
+DOCKER_ID ?=mchmarny
 
 all: help
 
@@ -55,8 +56,8 @@ publish: ## Publishes image directly using ko
 .PHONY: publish
 
 image: ## Build local image using Docker
-	docker build --build-arg VERSION=${VERSION} \
-		-t $(REGISTRY)/$(PROJECT)/hello/hello:$(VERSION) .
+	docker build --build-arg VERSION=${VERSION} -t $(DOCKER_ID)/hello:$(VERSION) .
+	docker push $(DOCKER_ID)/hello:$(VERSION)
 .PHONY: image
 
 verify: ## Verify previously signed image
