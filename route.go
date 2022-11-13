@@ -14,7 +14,7 @@ func makeRouter() *gin.Engine {
 	r.Use(options)
 
 	r.GET("/", func(c *gin.Context) {
-		c.String(http.StatusOK, "Hello")
+		c.String(http.StatusOK, "hello")
 	})
 
 	api := r.Group("/api")
