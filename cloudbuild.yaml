@@ -17,7 +17,7 @@ steps:
     args: ["-c", "make test"]
 
   # Scan code 
-  - name: snyk/snyk-cli:docker
+  - name: snyk/snyk:golang
     id: scan
     entrypoint: /bin/bash
     args:
