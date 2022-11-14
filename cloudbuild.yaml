@@ -15,6 +15,16 @@ steps:
       - GO111MODULE=on
     entrypoint: /bin/bash
     args: ["-c", "make test"]
+
+  # Scan code 
+  - name: snyk/snyk-cli:docker
+    id: scan
+    entrypoint: /bin/bash
+    args:
+    - '-c'
+    - |-
+      snyk config set api=${_SNYK_TOKEN}
+      snyk test --severity-threshold=medium
         
   # Build image
   - name: gcr.io/cloud-builders/docker
