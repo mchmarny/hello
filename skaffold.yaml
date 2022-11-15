@@ -7,7 +7,6 @@ build:
   #   push: false
   artifacts:
   - image: hello
-    context: .
     docker:
       dockerfile: Dockerfile
     sync:

@@ -32,9 +32,9 @@ check: ## Static checks the entire project
 	staticcheck ./...
 .PHONY: check
 
-app: ## Runs uncompiled app 
-	go run main.go
-.PHONY: app
+run: ## Runs uncompiled app 
+	go run main.go route.go
+.PHONY: run
 
 tag: ## Creates release tag 
 	git tag $(VERSION)
