@@ -6,19 +6,28 @@ Demo app in go
 
 > Assumes the `kind` cluster is already set up. (`cluster/cluster-up`)
 
-Make sure the `kubectl` context is set to the local cluster
+Make sure the `kubectl` context is set to the local cluster.
 
 `kubectx`
 
-If not, set it
+If not, set it.
 
 `kubectx kind-dev`
 
-Launch `skaffold` in dev mode
+Launch `skaffold` in dev mode.
 
-`skaffold dev`
+`skaffold dev --cache-artifacts=false`
 
-Code changes will result in new image build and deploy
+Code changes will result in new image build and deploy.
+
+When ready, you can render the configuration using either `helm`, `kpt`, or `kustomize`.
+
+> local image cause the kind cluster configured for local Docker registry
+
+`skaffold render` or `o demo.yaml`
+
+You can apply `demo.yaml` using `skaffold apply demo.yaml` or `kubectl`.
+
 
 ## Local Dev Using Makefile 
 
