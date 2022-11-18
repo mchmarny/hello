@@ -50,8 +50,8 @@ jobs:
       uses: google-github-actions/auth@v1
       with:
           token_format: "access_token"
-          workload_identity_provider: ${{ secrets.IDENTITY_PROVIDER }}
-          service_account: ${{ secrets.SERVICE_ACCOUNT }}
+          workload_identity_provider: projects/799736955886/locations/global/workloadIdentityPools/github-pool/providers/github-provider
+          service_account: github-actions-user@cloudy-demos.iam.gserviceaccount.com
 
     - name: Install Ko
       uses: imjasonh/setup-ko@v0.6
@@ -70,7 +70,7 @@ jobs:
       run: |
         ko build . --image-refs ./image-digest --bare --tags ${{ env.RELEASE_VERSION }},latest
       env:
-        KO_DOCKER_REPO: ${{ secrets.REGISTRY_LOCATION }}-docker.pkg.dev/${{ secrets.PROJECT_ID }}/${{ secrets.ARTIFACT_REGISTRY }}/hello
+        KO_DOCKER_REPO: us-west1-docker.pkg.dev/cloudy-demos/hello2/hello
         GOFLAGS: "-ldflags=-X=main.version=${{ env.RELEASE_VERSION }}"
 
     - name: Install Cosign
