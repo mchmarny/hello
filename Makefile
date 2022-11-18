@@ -37,7 +37,7 @@ run: ## Runs uncompiled app
 .PHONY: run
 
 tag: ## Creates release tag 
-	git tag -s -a $(VERSION)
+	git tag -s -m "version bump to $(VERSION)" $(VERSION)
 	git push origin $(VERSION)
 .PHONY: tag
 
