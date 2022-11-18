@@ -66,7 +66,7 @@ jobs:
         make tidy
 
     - id: publish
-      name: Publish App Image
+      name: Publish Image
       run: |
         ko build . --image-refs ./image-digest --bare --tags ${{ env.RELEASE_VERSION }},latest
       env:
@@ -78,12 +78,14 @@ jobs:
       with:
         cosign-release: 'v1.13.1'
 
-    - name: Check install
-      run: cosign version
+    - name: Login With cosign
+      run: |
+        cosign version
+        cosign login us-west1-docker.pkg.dev -u=oauth2accesstoken -p=${{ steps.auth.outputs.access_token }}
 
     - name: Sign Image
       run: |
-        cosign sign --force --oidc-client-secret-file=${{ steps.auth.outputs.access_token }} $(cat ./image-digest) 
+        cosign sign --force $(cat ./image-digest) 
       env:
         COSIGN_EXPERIMENTAL: 1
         
