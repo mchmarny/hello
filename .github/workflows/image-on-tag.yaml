@@ -83,6 +83,7 @@ jobs:
 
     - name: Sign Image
       run: |
-        cosign sign --force $(cat ./image-digest) 
+        cosign sign --force --oidc-client-secret-file=${{ steps.auth.outputs.access_token }} $(cat ./image-digest) 
       env:
         COSIGN_EXPERIMENTAL: 1
+        
