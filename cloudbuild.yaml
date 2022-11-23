@@ -67,13 +67,13 @@ steps:
     name: us-west1-docker.pkg.dev/cloudy-demos/tools/syft_and_grype:v060.3_v0.52.0
     env:
     - "PROJECT_ID=$PROJECT_ID"
-    - "IMAGE=${LOCATION}-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$_APP_NAME:$COMMIT_SHA"
+    - "_IMAGE=${LOCATION}-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$_APP_NAME:$COMMIT_SHA"
     entrypoint: /bin/bash
     args:
     - -c
     - |
-      echo "Running Syft on: ${IMAGE}" &&
-      syft --scope all-layers -o spdx-json=sbom.spdx.json ${IMAGE} &&
+      echo "Running Syft on: ${_IMAGE}" &&
+      syft --scope all-layers -o spdx-json=sbom.spdx.json ${_IMAGE} &&
       cat spdx-json=sbom.spdx.json
     waitFor: ['vulnsign']
 
