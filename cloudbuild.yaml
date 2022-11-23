@@ -6,13 +6,14 @@ substitutions:
   _APP_NAME: hello
   _PIPELINE_NAME: deploy-demo-pipeline
   _POOL_NAME: demo-pool
+  _IMAGE_URI: ${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${_APP_NAME}:${COMMIT_SHA}
 
 steps:
   # Go test
   - id: test
     name: golang:1.19
     env:
-      - GO111MODULE=on
+    - GO111MODULE=on
     entrypoint: /bin/bash
     args: ["-c", "make test"]
 
@@ -33,7 +34,7 @@ steps:
     args:
     - -c
     - |
-      docker build --build-arg VERSION=${TAG_NAME} -t ${LOCATION}-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$_APP_NAME:$COMMIT_SHA .
+      docker build --build-arg VERSION=${TAG_NAME} -t $_IMAGE_URI .
   
   # Publish image, get sha256
   - id: publish
@@ -42,8 +43,9 @@ steps:
     args:
     - -c
     - |
-      docker push ${LOCATION}-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$_APP_NAME:$COMMIT_SHA &&
-      docker image inspect ${LOCATION}-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$_APP_NAME:$COMMIT_SHA --format '{{index .RepoDigests 0}}' > image-digest.txt && cat image-digest.txt
+      docker push $_IMAGE_URI &&
+      docker image inspect $_IMAGE_URI --format '{{index .RepoDigests 0}}' > image-digest.txt && 
+      cat image-digest.txt
 
   # Test against my vulnerability policy
   - id: vulnsign
@@ -67,17 +69,15 @@ steps:
     name: us-west1-docker.pkg.dev/cloudy-demos/tools/syft_and_grype:v060.3_v0.52.0
     env:
     - "PROJECT_ID=$PROJECT_ID"
-    - "_IMAGE=${LOCATION}-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$_APP_NAME:$COMMIT_SHA"
     entrypoint: /bin/bash
     args:
     - -c
     - |
-      echo "Running Syft on: ${_IMAGE}" &&
-      syft --scope all-layers -o spdx-json=sbom.spdx.json ${_IMAGE} &&
+      echo "Running Syft on: $_IMAGE_URI" &&
+      syft --scope all-layers -o spdx-json=sbom.spdx.json $_IMAGE_URI &&
       cat spdx-json=sbom.spdx.json
     waitFor: ['vulnsign']
 
-    
   # Create release in Google Cloud Deploy
   - id: release
     name: gcr.io/google.com/cloudsdktool/cloud-sdk
