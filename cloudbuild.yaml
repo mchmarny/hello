@@ -6,7 +6,6 @@ substitutions:
   _APP_NAME: hello
   _PIPELINE_NAME: deploy-demo-pipeline
   _POOL_NAME: demo-pool
-  _IMAGE_URI: ${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${_APP_NAME}:${COMMIT_SHA}
 
 steps:
   # Go test
@@ -34,7 +33,7 @@ steps:
     args:
     - -c
     - |
-      docker build --build-arg VERSION=${TAG_NAME} -t $_IMAGE_URI .
+      docker build --build-arg VERSION=${TAG_NAME} -t "${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${_APP_NAME}:${COMMIT_SHA}" .
   
   # Publish image, get sha256
   - id: publish
@@ -43,8 +42,8 @@ steps:
     args:
     - -c
     - |
-      docker push $_IMAGE_URI &&
-      docker image inspect $_IMAGE_URI --format '{{index .RepoDigests 0}}' > image-digest.txt && 
+      docker push "${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${_APP_NAME}:${COMMIT_SHA}" &&
+      docker image inspect "${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${_APP_NAME}:${COMMIT_SHA}" --format '{{index .RepoDigests 0}}' > image-digest.txt && 
       cat image-digest.txt
 
   # Test against my vulnerability policy
@@ -73,8 +72,8 @@ steps:
     args:
     - -c
     - |
-      echo "Running Syft on: $_IMAGE_URI" &&
-      syft --scope all-layers -o spdx-json=sbom.spdx.json $_IMAGE_URI &&
+      echo "Running Syft on: ${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${_APP_NAME}:${COMMIT_SHA}" &&
+      syft --scope all-layers -o spdx-json=sbom.spdx.json "${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${_APP_NAME}:${COMMIT_SHA}" &&
       cat spdx-json=sbom.spdx.json
     waitFor: ['vulnsign']
 
