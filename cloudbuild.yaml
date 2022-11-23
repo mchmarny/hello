@@ -62,8 +62,7 @@ steps:
       -note_name=${_NOTE_NAME}
     waitFor: ['publish']
 
-  # Generate SBOM  
-  # TODO: add SBOM attestation
+  # Generate SBOM
   - name: anchore/syft
     id: sbom
     entrypoint: /syft
@@ -74,8 +73,17 @@ steps:
     - spdx-json=sbom.spdx.json
     - ${LOCATION}-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$_APP_NAME:$COMMIT_SHA
     waitFor: ['vulnsign']
-    
 
+  # TODO: Publish SBOM
+  - name: gcr.io/cloud-builders/docker
+    entrypoint: /bin/bash
+    args:
+    - -c
+    - |
+      cat spdx-json=sbom.spdx.json
+    id: sbompub
+    waitFor: ['sbom']
+    
   # Create release in Google Cloud Deploy
   - name: gcr.io/google.com/cloudsdktool/cloud-sdk
     id: release
@@ -88,7 +96,7 @@ steps:
       --region=${LOCATION} \
       --annotations=commitId=${REVISION_ID} \
       --images=${_APP_NAME}=$(/bin/cat image-digest.txt)
-    waitFor: ['vulnsign']
+    waitFor: ['sbompub']
 
 images:
 - ${LOCATION}-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$_APP_NAME:$COMMIT_SHA
