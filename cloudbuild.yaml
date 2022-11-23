@@ -67,10 +67,8 @@ steps:
     id: sbom
     entrypoint: /syft
     args:
-    - --scope
-    - all-layers
-    - -o
-    - spdx-json=sbom.spdx.json
+    - '--scope all-layers'
+    - '-o spdx-json=sbom.spdx.json'
     - ${LOCATION}-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$_APP_NAME:$COMMIT_SHA
     waitFor: ['vulnsign']
 
