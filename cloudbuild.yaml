@@ -63,24 +63,19 @@ steps:
     waitFor: ['publish']
 
   # Generate SBOM
-  - name: anchore/syft
+  - name: us-west1-docker.pkg.dev/cloudy-demos/tools/syft_and_grype:v060.3_v0.52.0
     id: sbom
-    entrypoint: /syft
-    args:
-    - '--scope all-layers'
-    - '-o spdx-json=sbom.spdx.json'
-    - ${LOCATION}-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$_APP_NAME:$COMMIT_SHA
+    env:
+    - "PROJECT_ID=$PROJECT_ID"
+    script: |
+      #!/bin/bash
+      set -e
+      echo "Running Syft on: ${LOCATION}-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$_APP_NAME:$COMMIT_SHA"
+      syft --scope all-layers -o spdx-json=sbom.spdx.json \
+        ${LOCATION}-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$_APP_NAME:$COMMIT_SHA
+      cat spdx-json=sbom.spdx.json
     waitFor: ['vulnsign']
 
-  # TODO: Publish SBOM
-  - name: gcr.io/cloud-builders/docker
-    entrypoint: /bin/bash
-    args:
-    - -c
-    - |
-      cat spdx-json=sbom.spdx.json
-    id: sbompub
-    waitFor: ['sbom']
     
   # Create release in Google Cloud Deploy
   - name: gcr.io/google.com/cloudsdktool/cloud-sdk
@@ -94,7 +89,7 @@ steps:
       --region=${LOCATION} \
       --annotations=commitId=${REVISION_ID} \
       --images=${_APP_NAME}=$(/bin/cat image-digest.txt)
-    waitFor: ['sbompub']
+    waitFor: ['sbom']
 
 images:
 - ${LOCATION}-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$_APP_NAME:$COMMIT_SHA
