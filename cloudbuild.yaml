@@ -73,7 +73,7 @@ steps:
     - -c
     - |
       syft -v --scope all-layers -o spdx-json=sbom.spdx.json $(/bin/cat image-digest.txt) &&
-      cat spdx-json=sbom.spdx.json
+      cat sbom.spdx.json
     waitFor: ['vulnsign']
 
   # Create release in Google Cloud Deploy
