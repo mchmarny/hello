@@ -16,4 +16,3 @@ ENV PATH=/builder/google-cloud-sdk/bin/:$PATH
 # anchore tools 
 RUN curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
 RUN curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
-
