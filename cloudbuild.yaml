@@ -70,10 +70,13 @@ steps:
   - id: sbom
     name: us-west1-docker.pkg.dev/cloudy-demos/tools/s3c-helper:latest
     waitFor: ["vulnsign"]
+    env:
+    - '_IMAGE=${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${_APP_NAME}:${COMMIT_SHA}'
+    - '_KEY=gcpkms://${_KMS_KEY_NAME}'
     script: |
       #!/bin/sh
-      _IMAGE="${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${_APP_NAME}:${COMMIT_SHA}"
-      _KEY="gcpkms://${_KMS_KEY_NAME}"
+      echo 'IMAGE: ${_IMAGE}'
+      echo 'KEY: ${_KEY}'
       cosign sign --key $_KEY \
                   -a repo=${REPO_NAME} \
                   -a branch=${BRANCH_NAME} \
@@ -84,9 +87,9 @@ steps:
       syft --scope all-layers -o spdx-json=sbom.spdx.json \
            $_IMAGE | jq --compact-output > ./sbom.spdx.json
       _SBOM_TAG=$(echo $_IMAGE | tr ':' '-' | tr '@' ':')
-      cosign upload blob -f ./sbom.spdx.json "${_SBOM_TAG}.sbom"
-      cosign sign --key $_KEY "${_SBOM_TAG}.sbom"
-      cosign verify --key $_KEY "${_SBOM_TAG}.sbom"
+      cosign upload blob -f ./sbom.spdx.json '${_SBOM_TAG}.sbom'
+      cosign sign --key $_KEY '${_SBOM_TAG}.sbom'
+      cosign verify --key $_KEY '${_SBOM_TAG}.sbom'
 
   # Create release in Google Cloud Deploy
   - id: release
