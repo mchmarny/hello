@@ -66,18 +66,34 @@ key: ## Build and publishes S3C tools
 .PHONY: key
 
 tools: ## Build and publishes S3C tools
-	docker build -f tools/s3c-helper/Dockerfile \
-				 -t $(REGISTRY)/$(PROJECT)/tools/s3c-helper:latest .
-	docker push $(REGISTRY)/$(PROJECT)/tools/s3c-helper:latest
-	$(eval IMAGE_SHA := $(shell crane digest $(REGISTRY)/$(PROJECT)/tools/s3c-helper:latest))
-	$(eval IMAGE_URI := $(REGISTRY)/$(PROJECT)/tools/s3c-helper@$(IMAGE_SHA))
-	cosign sign --key $(SIGN_KEY) $(IMAGE_URI)
-	cosign verify --key $(SIGN_KEY) $(IMAGE_URI)
-	syft --scope all-layers -o spdx-json=sbom.spdx.json $(IMAGE_URI) | jq --compact-output > ./sbom.spdx.json
+	# parse url and tag
+	$(eval IMAGE_REG := $(REGISTRY)/$(PROJECT)/tools/s3c-helper)
+	$(eval IMAGE_TAG := $(IMAGE_REG):latest)
+
+	# build and push image 
+	docker build -f tools/s3c-helper/Dockerfile -t $(IMAGE_TAG) .
+	docker push $(IMAGE_TAG)
+
+	# parse image sha
+	$(eval IMAGE_SHA := $(shell docker inspect --format='{{index .RepoDigests 0}}' $(IMAGE_TAG)))
 	
-	# cosign attach attestation --attestation ./sbom.spdx.json $(IMAGE_URI)
-	# cosign attest --predicate ./sbom.spdx.json --type spdxjson --key $(SIGN_KEY) $(IMAGE_URI)
-	# cosign attach attestation --attestation sbom.spdx.json $(IMAGE_URI)
+	# sign and verify image 
+	cosign sign --key $(SIGN_KEY) -a tag=latest $(IMAGE_SHA)
+	cosign verify --key $(SIGN_KEY) $(IMAGE_SHA)
+	
+	# generate sbom from image 
+	syft --scope all-layers -o spdx-json=sbom.spdx.json $(IMAGE_SHA) \
+		| jq --compact-output > ./sbom.spdx.json
+
+	# parse sbom tag
+	$(eval SBOM_TAG := $(shell echo $(IMAGE_SHA) | tr ':' '-' | tr '@' ':'))
+
+	# upload, sign, and verify tag
+	cosign upload blob -f ./sbom.spdx.json $(SBOM_TAG).sbom
+	cosign sign --key $(SIGN_KEY) $(SBOM_TAG).sbom
+	cosign verify --key $(SIGN_KEY) $(SBOM_TAG).sbom
+	
+	@echo "https://console.cloud.google.com/artifacts/docker/$(PROJECT)/us-west1/tools/s3c-helper?project=$(PROJECT)"
 .PHONY: tools
 
 verify: ## Verify previously signed image

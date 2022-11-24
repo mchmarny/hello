@@ -66,16 +66,19 @@ steps:
   # Generate SBOM
   - id: sbom
     name: us-west1-docker.pkg.dev/cloudy-demos/tools/s3c-helper:latest
-    entrypoint: /usr/local/bin
+    entrypoint: /bin/bash
     args:
     - -c
     - |
       _IMAGE="${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${_APP_NAME}:${COMMIT_SHA}" &&
       _KEY="gcpkms://${_KMS_KEY_NAME}" &&
-      cosign sign --key $_KEY $_IMAGE &&
+      cosign sign --key $_KEY -a tag=latest $_IMAGE &&
       cosign verify --key $_KEY $_IMAGE &&
-      syft --scope all-layers -o spdx-json=sbom.spdx.json $_IMAGE &&
-      cosign attach attestation --attestation sbom.spdx.json $_IMAGE
+      syft --scope all-layers -o spdx-json=sbom.spdx.json $_IMAGE | jq --compact-output > ./sbom.spdx.json &&
+      _SBOM_TAG=$(echo $_IMAGE | tr ':' '-' | tr '@' ':') &&
+      cosign upload blob -f ./sbom.spdx.json "${_SBOM_TAG}.sbom" &&
+      cosign sign --key $_KEY "${_SBOM_TAG}.sbom" &&
+      cosign verify --key $_KEY "${_SBOM_TAG}.sbom"
     waitFor: ['vulnsign']
 
   # Create release in Google Cloud Deploy
