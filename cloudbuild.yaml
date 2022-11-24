@@ -71,16 +71,12 @@ steps:
     name: us-west1-docker.pkg.dev/cloudy-demos/tools/s3c-helper:latest
     entrypoint: /bin/sh
     waitFor: ["vulnsign"]
-    env:
-    - '_IMAGE=${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${_APP_NAME}:${COMMIT_SHA}'
-    - '_KEY=gcpkms://${_KMS_KEY_NAME}'
-    - 'REPO_NAME=$REPO_NAME'
-    - 'BRANCH_NAME=$BRANCH_NAME'
-    - 'COMMIT_SHA=$COMMIT_SHA'
     args:
     - -c
     - |
-      echo "IMG: '${_IMAGE}', KEY: '${_KEY}', REPO: '${REPO_NAME}', BRANCH: '${BRANCH_NAME}', COMMIT: '${COMMIT_SHA}'" &&
+      _IMAGE=${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${_APP_NAME}:${COMMIT_SHA} &&
+      _KEY=gcpkms://${_KMS_KEY_NAME} &&
+      echo "IMG:${_IMAGE}, KEY:${_KEY}, REPO:${REPO_NAME}, BRANCH:${BRANCH_NAME}, COMMIT:${COMMIT_SHA}" &&
       cosign sign --key $_KEY -a repo=${REPO_NAME} -a branch=${BRANCH_NAME} -a commit=${COMMIT_SHA} -a tag=latest $_IMAGE  &&
       cosign verify --key $_KEY $_IMAGE &&
       syft --scope all-layers -o spdx-json=sbom.spdx.json $_IMAGE | jq --compact-output > ./sbom.spdx.json &&
