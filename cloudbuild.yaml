@@ -74,13 +74,13 @@ steps:
     name: us-west1-docker.pkg.dev/cloudy-demos/tools/s3c-helper:latest
     waitFor: ["vulnsign"]
     env:
-    - 'PROJECT_ID=${PROJECT_ID}'
-    - 'LOCATION=${LOCATION}'
-    - 'IMG=$(cat image-digest.txt)'
-    - 'KEY=gcpkms://${_KMS_KEY_NAME}'
+    - "PROJECT_ID=${PROJECT_ID}"
+    - "LOCATION=${LOCATION}"
+    - "KEY=gcpkms://${_KMS_KEY_NAME}"
     script: |
       #!/bin/bash
       
+      IMG=$(/bin/cat image-digest.txt)
       echo "IMG: ${IMG}, KEY: ${KEY}"
       gcloud auth configure-docker ${LOCATION}-docker.pkg.dev --quiet
       gcloud config set project $PROJECT_ID
