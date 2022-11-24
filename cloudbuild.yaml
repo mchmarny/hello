@@ -71,6 +71,7 @@ steps:
     name: us-west1-docker.pkg.dev/cloudy-demos/tools/s3c-helper:latest
     waitFor: ["vulnsign"]
     env:
+    - 'PROJECT_ID=${PROJECT_ID}'
     - 'LOCATION=${LOCATION}'
     - 'IMG=${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${_APP_NAME}:${COMMIT_SHA}'
     - 'KEY=gcpkms://${_KMS_KEY_NAME}'
@@ -79,6 +80,7 @@ steps:
       
       echo "IMG: ${IMG}, KEY: ${KEY}"
       gcloud auth configure-docker ${LOCATION}-docker.pkg.dev --quiet
+      gcloud config set project $PROJECT_ID
 
       cosign sign --key $KEY -a tag=latest $IMG
       cosign verify --key $KEY $IMG
