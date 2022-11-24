@@ -82,6 +82,7 @@ steps:
       gcloud auth configure-docker ${LOCATION}-docker.pkg.dev --quiet
       gcloud config set project $PROJECT_ID
 
+      cosign generate-key-pair --kms $KEY
       cosign sign --key $KEY -a tag=latest $IMG
       cosign verify --key $KEY $IMG
       
