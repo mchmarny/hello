@@ -35,7 +35,10 @@ steps:
     args:
     - -c
     - |
-      docker build --build-arg VERSION=${TAG_NAME} -t "${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${_APP_NAME}:${COMMIT_SHA}" .
+      docker build --build-arg VERSION=${TAG_NAME} \
+        -t "${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${_APP_NAME}:${COMMIT_SHA}" \
+        -t "${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${_APP_NAME}:${TAG_NAME}" \
+        .
   
   # Publish image, get sha256
   - id: publish
@@ -45,8 +48,8 @@ steps:
     args:
     - -c
     - |
-      docker push "${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${_APP_NAME}:${COMMIT_SHA}" &&
-      docker image inspect "${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${_APP_NAME}:${COMMIT_SHA}" --format '{{index .RepoDigests 0}}' > image-digest.txt && 
+      docker push "${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${_APP_NAME}:${TAG_NAME}" &&
+      docker image inspect "${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${_APP_NAME}:${TAG_NAME}" --format '{{index .RepoDigests 0}}' > image-digest.txt && 
       cat image-digest.txt
 
   # Test against my vulnerability policy
@@ -73,7 +76,7 @@ steps:
     env:
     - 'PROJECT_ID=${PROJECT_ID}'
     - 'LOCATION=${LOCATION}'
-    - 'IMG=${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${_APP_NAME}:${COMMIT_SHA}'
+    - 'IMG=$(cat image-digest.txt)'
     - 'KEY=gcpkms://${_KMS_KEY_NAME}'
     script: |
       #!/bin/bash
@@ -108,7 +111,8 @@ steps:
       --images=${_APP_NAME}=$(/bin/cat image-digest.txt)
 
 images:
-- ${LOCATION}-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$_APP_NAME:$COMMIT_SHA
+# - ${LOCATION}-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$_APP_NAME:$TAG_NAME
+- $(cat image-digest.txt)
 options:
   requestedVerifyOption: VERIFIED
   pool:
