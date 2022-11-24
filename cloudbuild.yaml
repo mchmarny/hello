@@ -70,27 +70,25 @@ steps:
   - id: sbom
     name: us-west1-docker.pkg.dev/cloudy-demos/tools/s3c-helper:latest
     waitFor: ["vulnsign"]
+    env:
+    - 'LOCATION=${LOCATION}'
+    - 'IMG=${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${_APP_NAME}:${COMMIT_SHA}'
+    - 'KEY=gcpkms://${_KMS_KEY_NAME}'
     script: |
       #!/bin/bash
-
-      echo "LOC:${LOCATION}, PRJ:${PROJECT_ID}, APP:${_APP_NAME}, SHA:${COMMIT_SHA}"
       
+      echo "IMG: ${IMG}, KEY: ${KEY}"
       gcloud auth configure-docker ${LOCATION}-docker.pkg.dev --quiet
+
+      cosign sign --key $KEY -a tag=latest $IMG
+      cosign verify --key $KEY $IMG
       
-      export _IMG=${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${_APP_NAME}:${COMMIT_SHA}
-      export _KEY=gcpkms://${_KMS_KEY_NAME}
-      echo "IMG: ${_IMG}, KEY: ${_KEY}"
+      syft --scope all-layers -o spdx-json=sbom.spdx.json $IMG | jq --compact-output > ./sbom.spdx.json
       
-      cosign sign --key $_KEY -a tag=latest $_IMG
-      cosign verify --key $_KEY $_IMG
-      
-      syft --scope all-layers -o spdx-json=sbom.spdx.json $_IMG | jq --compact-output > ./sbom.spdx.json
-      
-      _TAG=$(echo $_IMG | tr ':' '-' | tr '@' ':')
-      
-      cosign upload blob -f ./sbom.spdx.json '${_TAG}.sbom'
-      cosign sign --key $_KEY '${_TAG}.sbom'
-      cosign verify --key $_KEY '${_TAG}.sbom'
+      export TAG=$(echo $IMG | tr ':' '-' | tr '@' ':')
+      cosign upload blob -f ./sbom.spdx.json "${TAG}.sbom"
+      cosign sign --key $KEY "${TAG}.sbom"
+      cosign verify --key $KEY "${TAG}.sbom"
 
   # Create release in Google Cloud Deploy
   - id: release
