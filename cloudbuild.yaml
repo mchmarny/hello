@@ -73,17 +73,14 @@ steps:
     waitFor: ["vulnsign"]
     args:
     - -c
-    - |
-      _IMAGE=${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${_APP_NAME}:${COMMIT_SHA} &&
-      _KEY=gcpkms://${_KMS_KEY_NAME} &&
-      echo "IMG:${_IMAGE}, KEY:${_KEY}, REPO:${REPO_NAME}, BRANCH:${BRANCH_NAME}, COMMIT:${COMMIT_SHA}" &&
-      cosign sign --key $_KEY -a repo=${REPO_NAME} -a branch=${BRANCH_NAME} -a commit=${COMMIT_SHA} -a tag=latest $_IMAGE  &&
-      cosign verify --key $_KEY $_IMAGE &&
-      syft --scope all-layers -o spdx-json=sbom.spdx.json $_IMAGE | jq --compact-output > ./sbom.spdx.json &&
-      _SBOM_TAG=$(echo $_IMAGE | tr ':' '-' | tr '@' ':') &&
-      cosign upload blob -f ./sbom.spdx.json '${_SBOM_TAG}.sbom' &&
-      cosign sign --key $_KEY '${_SBOM_TAG}.sbom' &&
-      cosign verify --key $_KEY '${_SBOM_TAG}.sbom'
+    - |      
+      cosign sign --key gcpkms://${_KMS_KEY_NAME} -a repo=${REPO_NAME} -a branch=${BRANCH_NAME} -a commit=${COMMIT_SHA} -a tag=latest ${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${_APP_NAME}:${COMMIT_SHA}  &&
+      cosign verify --key gcpkms://${_KMS_KEY_NAME} {LOCATION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${_APP_NAME}:${COMMIT_SHA} &&
+      syft --scope all-layers -o spdx-json=sbom.spdx.json {LOCATION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${_APP_NAME}:${COMMIT_SHA} | jq --compact-output > ./sbom.spdx.json &&
+      _SBOM_TAG=$(echo {LOCATION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${_APP_NAME}:${COMMIT_SHA} | tr ':' '-' | tr '@' ':') &&
+      cosign upload blob -f ./sbom.spdx.json ${_SBOM_TAG}.sbom &&
+      cosign sign --key gcpkms://${_KMS_KEY_NAME} ${_SBOM_TAG}.sbom &&
+      cosign verify --key gcpkms://${_KMS_KEY_NAME} ${_SBOM_TAG}.sbom
 
   # Create release in Google Cloud Deploy
   - id: release
