@@ -111,8 +111,7 @@ steps:
       --images=${_APP_NAME}=$(/bin/cat image-digest.txt)
 
 images:
-# - ${LOCATION}-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$_APP_NAME:$TAG_NAME
-- $(cat image-digest.txt)
+- ${LOCATION}-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$_APP_NAME:$TAG_NAME
 options:
   requestedVerifyOption: VERIFIED
   pool:
