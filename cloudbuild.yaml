@@ -20,6 +20,7 @@ steps:
   - id: scan
     name: snyk/snyk:golang
     entrypoint: /bin/bash
+    waitFor: ["test"]
     args:
     - '-c'
     - |-
@@ -30,6 +31,7 @@ steps:
   - id: build
     name: gcr.io/cloud-builders/docker
     entrypoint: /bin/bash
+    waitFor: ["scan"]
     args:
     - -c
     - |
@@ -39,6 +41,7 @@ steps:
   - id: publish
     name: gcr.io/cloud-builders/docker
     entrypoint: /bin/bash
+    waitFor: ["build"]
     args:
     - -c
     - |
@@ -50,6 +53,7 @@ steps:
   - id: vulnsign
     name: gcr.io/$PROJECT_ID/kritis-signer
     entrypoint: /bin/bash
+    waitFor: ["publish"]
     args:
     - -c
     - |
@@ -61,36 +65,34 @@ steps:
       -kms_key_name=${_KMS_KEY_NAME} \
       -kms_digest_alg=${_KMS_DIGEST_ALG} \
       -note_name=${_NOTE_NAME}
-    waitFor: ['publish']
 
   # Generate SBOM
   - id: sbom
     name: us-west1-docker.pkg.dev/cloudy-demos/tools/s3c-helper:latest
     entrypoint: /bin/sh
-    args:
-    - -c
-    - |
-      _IMAGE="${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${_APP_NAME}:${COMMIT_SHA}" &&
-      _KEY="gcpkms://${_KMS_KEY_NAME}" &&
+    waitFor: ["vulnsign"]
+    script: |
+      _IMAGE="${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${_APP_NAME}:${COMMIT_SHA}"
+      _KEY="gcpkms://${_KMS_KEY_NAME}"
       cosign sign --key $_KEY \
                   -a repo=${REPO_NAME} \
                   -a branch=${BRANCH_NAME} \
                   -a commit=${COMMIT_SHA} \
                   -a tag=latest \
-                  $_IMAGE &&
-      cosign verify --key $_KEY $_IMAGE &&
+                  $_IMAGE
+      cosign verify --key $_KEY $_IMAGE
       syft --scope all-layers -o spdx-json=sbom.spdx.json \
-           $_IMAGE | jq --compact-output > ./sbom.spdx.json &&
-      _SBOM_TAG=$(echo $_IMAGE | tr ':' '-' | tr '@' ':') &&
-      cosign upload blob -f ./sbom.spdx.json "${_SBOM_TAG}.sbom" &&
-      cosign sign --key $_KEY "${_SBOM_TAG}.sbom" &&
+           $_IMAGE | jq --compact-output > ./sbom.spdx.json
+      _SBOM_TAG=$(echo $_IMAGE | tr ':' '-' | tr '@' ':')
+      cosign upload blob -f ./sbom.spdx.json "${_SBOM_TAG}.sbom"
+      cosign sign --key $_KEY "${_SBOM_TAG}.sbom"
       cosign verify --key $_KEY "${_SBOM_TAG}.sbom"
-    waitFor: ['vulnsign']
 
   # Create release in Google Cloud Deploy
   - id: release
     name: gcr.io/google.com/cloudsdktool/cloud-sdk
     entrypoint: /bin/bash
+    waitFor: ["sbom"]
     args:
     - -c
     - |
@@ -99,7 +101,6 @@ steps:
       --region=${LOCATION} \
       --annotations=commitId=${REVISION_ID} \
       --images=${_APP_NAME}=$(/bin/cat image-digest.txt)
-    waitFor: ['sbom']
 
 images:
 - ${LOCATION}-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$_APP_NAME:$COMMIT_SHA

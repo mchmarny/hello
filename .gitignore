@@ -15,7 +15,10 @@ dist
 # Keys 
 cosign.*
 *.pem
+
+# syft/grype
 sbom.spdx.json
+vuln.grype.json
 
 # ko 
 image-digest

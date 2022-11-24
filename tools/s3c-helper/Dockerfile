@@ -1,15 +1,7 @@
-FROM golang:latest as builder
-
-RUN go install github.com/sigstore/cosign/cmd/cosign@main
-RUN go install github.com/sigstore/rekor/cmd/rekor-cli@main
-RUN go install github.com/google/go-containerregistry/cmd/crane@latest
-
 FROM golang:1.19-alpine
 
-COPY --from=builder /go/bin/cosign /go/bin/cosign
-COPY --from=builder /go/bin/rekor-cli /go/bin/rekor-cli
-COPY --from=builder /go/bin/crane /go/bin/crane
-
-RUN apk add curl docker jq
+RUN apk add curl docker jq cosign
 RUN curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
 RUN curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
+RUN curl -sSfL https://github.com/michaelsauter/crane/releases/download/v3.6.1/crane_linux_amd64 | sh -s mv crane_linux_amd64 /usr/local/bin/crane | sh -s chmod +x /usr/local/bin/crane
+
