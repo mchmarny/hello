@@ -73,10 +73,10 @@ tools: ## Build and publishes S3C tools
 	$(eval IMAGE_URI := $(REGISTRY)/$(PROJECT)/tools/s3c-helper@$(IMAGE_SHA))
 	cosign sign --key $(SIGN_KEY) $(IMAGE_URI)
 	cosign verify --key $(SIGN_KEY) $(IMAGE_URI)
-	syft --scope all-layers -o spdx-json=sbom.spdx.json $(IMAGE_URI)
-	cosign attach attestation --attestation sbom.spdx.json $(IMAGE_URI)
-
-	# cosign attest --predicate sbom.spdx.json --type spdxjson --key $(SIGN_KEY) $(IMAGE_URI)
+	syft --scope all-layers -o spdx-json=sbom.spdx.json $(IMAGE_URI) | jq --compact-output > ./sbom.spdx.json
+	
+	# cosign attach attestation --attestation ./sbom.spdx.json $(IMAGE_URI)
+	# cosign attest --predicate ./sbom.spdx.json --type spdxjson --key $(SIGN_KEY) $(IMAGE_URI)
 	# cosign attach attestation --attestation sbom.spdx.json $(IMAGE_URI)
 .PHONY: tools
 

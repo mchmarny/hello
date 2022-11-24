@@ -11,3 +11,5 @@ COPY --from=builder /go/bin/crane /go/bin/crane
 RUN apk add curl docker jq
 RUN curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
 RUN curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
+
+ENTRYPOINT ["/usr/local/bin"]
