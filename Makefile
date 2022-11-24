@@ -2,6 +2,7 @@ VERSION   ?=$(shell cat .version)
 PROJECT   ?=cloudy-demos
 REGISTRY  ?=us-west1-docker.pkg.dev
 DOCKER_ID ?=mchmarny
+SIGN_KEY  ?=gcpkms://projects/cloudy-demos/locations/us-west1/keyRings/binauthz/cryptoKeys/vulnz-signer/cryptoKeyVersions/1
 
 all: help
 
@@ -59,6 +60,25 @@ image: ## Build local image using Docker
 	docker build --build-arg VERSION=${VERSION} -t $(DOCKER_ID)/hello:$(VERSION) .
 	docker push $(DOCKER_ID)/hello:$(VERSION)
 .PHONY: image
+
+key: ## Build and publishes S3C tools
+	cosign generate-key-pair --kms $(SIGN_KEY)
+.PHONY: key
+
+tools: ## Build and publishes S3C tools
+	docker build -f tools/s3c-helper/Dockerfile \
+				 -t $(REGISTRY)/$(PROJECT)/tools/s3c-helper:latest .
+	docker push $(REGISTRY)/$(PROJECT)/tools/s3c-helper:latest
+	$(eval IMAGE_SHA := $(shell crane digest $(REGISTRY)/$(PROJECT)/tools/s3c-helper:latest))
+	$(eval IMAGE_URI := $(REGISTRY)/$(PROJECT)/tools/s3c-helper@$(IMAGE_SHA))
+	cosign sign --key $(SIGN_KEY) $(IMAGE_URI)
+	cosign verify --key $(SIGN_KEY) $(IMAGE_URI)
+	syft --scope all-layers -o spdx-json=sbom.spdx.json $(IMAGE_URI)
+	cosign attach attestation --attestation sbom.spdx.json $(IMAGE_URI)
+
+	# cosign attest --predicate sbom.spdx.json --type spdxjson --key $(SIGN_KEY) $(IMAGE_URI)
+	# cosign attach attestation --attestation sbom.spdx.json $(IMAGE_URI)
+.PHONY: tools
 
 verify: ## Verify previously signed image
 	cosign verify --key cosign.pub $(shell cat ./image-digest)

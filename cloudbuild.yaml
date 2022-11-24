@@ -65,15 +65,17 @@ steps:
 
   # Generate SBOM
   - id: sbom
-    name: us-west1-docker.pkg.dev/cloudy-demos/tools/syft_and_grype:v060.3_v0.52.0
-    env:
-    - "PROJECT_ID=$PROJECT_ID"
+    name: us-west1-docker.pkg.dev/cloudy-demos/tools/s3c-helper:latest
     entrypoint: /bin/bash
     args:
     - -c
     - |
-      syft -v --scope all-layers -o spdx-json=sbom.spdx.json $(/bin/cat image-digest.txt) &&
-      cat sbom.spdx.json
+      IMAGE="${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${_APP_NAME}:${COMMIT_SHA}" &&
+      KEY="gcpkms://${_KMS_KEY_NAME}" &&
+      cosign sign --key $KEY $IMAGE &&
+      cosign verify --key $KEY $IMAGE &&
+      syft --scope all-layers -o spdx-json=sbom.spdx.json $IMAGE &&
+      cosign attach attestation --attestation sbom.spdx.json $IMAGE
     waitFor: ['vulnsign']
 
   # Create release in Google Cloud Deploy
