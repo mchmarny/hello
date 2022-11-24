@@ -69,9 +69,9 @@ steps:
   # Generate SBOM
   - id: sbom
     name: us-west1-docker.pkg.dev/cloudy-demos/tools/s3c-helper:latest
-    entrypoint: /bin/sh
     waitFor: ["vulnsign"]
     script: |
+      #!/bin/sh
       _IMAGE="${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${_APP_NAME}:${COMMIT_SHA}"
       _KEY="gcpkms://${_KMS_KEY_NAME}"
       cosign sign --key $_KEY \
