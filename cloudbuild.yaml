@@ -70,12 +70,12 @@ steps:
     args:
     - -c
     - |
-      IMAGE="${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${_APP_NAME}:${COMMIT_SHA}" &&
-      KEY="gcpkms://${_KMS_KEY_NAME}" &&
-      cosign sign --key $KEY $IMAGE &&
-      cosign verify --key $KEY $IMAGE &&
-      syft --scope all-layers -o spdx-json=sbom.spdx.json $IMAGE &&
-      cosign attach attestation --attestation sbom.spdx.json $IMAGE
+      _IMAGE="${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${_APP_NAME}:${COMMIT_SHA}" &&
+      _KEY="gcpkms://${_KMS_KEY_NAME}" &&
+      cosign sign --key $_KEY $_IMAGE &&
+      cosign verify --key $_KEY $_IMAGE &&
+      syft --scope all-layers -o spdx-json=sbom.spdx.json $_IMAGE &&
+      cosign attach attestation --attestation sbom.spdx.json $_IMAGE
     waitFor: ['vulnsign']
 
   # Create release in Google Cloud Deploy
