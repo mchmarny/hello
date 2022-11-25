@@ -71,30 +71,14 @@ steps:
 
   # Generate SBOM
   - id: sbom
-    name: us-west1-docker.pkg.dev/cloudy-demos/tools/s3c-helper:latest
+    name: us-docker.pkg.dev/cloudy-demos/builders/sbom-builder:v0.1.2
+    entrypoint: /bin/bash
     waitFor: ["vulnsign"]
     env:
-    - "PROJECT_ID=${PROJECT_ID}"
-    - "LOCATION=${LOCATION}"
-    - "KEY=gcpkms://${_KMS_KEY_NAME}"
-    script: |
-      #!/bin/bash
-      
-      IMG=$(/bin/cat image-digest.txt)
-      echo "IMG: ${IMG}, KEY: ${KEY}"
-      gcloud auth configure-docker ${LOCATION}-docker.pkg.dev --quiet
-      gcloud config set project $PROJECT_ID
-
-      cosign generate-key-pair --kms $KEY
-      cosign sign --key $KEY -a tag=latest $IMG
-      cosign verify --key $KEY $IMG
-      
-      syft --scope all-layers -o spdx-json=sbom.spdx.json $IMG | jq --compact-output > ./sbom.spdx.json
-      
-      export TAG=$(echo $IMG | tr ':' '-' | tr '@' ':')
-      cosign upload blob -f ./sbom.spdx.json "${TAG}.sbom"
-      cosign sign --key $KEY "${TAG}.sbom"
-      cosign verify --key $KEY "${TAG}.sbom"
+    - PROJECT=$PROJECT_ID
+    - REGISTRY=${LOCATION}-docker.pkg.dev
+    - IMAGE=${PROJECT_ID}/${REPO_NAME}/${_APP_NAME}:${TAG_NAME}
+    - KEY=${_KMS_KEY_NAME}
 
   # Create release in Google Cloud Deploy
   - id: release
