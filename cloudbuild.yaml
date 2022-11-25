@@ -71,7 +71,7 @@ steps:
 
   # Generate SBOM
   - id: sbom
-    name: us-docker.pkg.dev/cloudy-demos/builders/sbom-builder:v0.1.2
+    name: us-docker.pkg.dev/cloudy-demos/builders/sbom-builder:v0.1.3
     entrypoint: /bin/bash
     waitFor: ["vulnsign"]
     env:
@@ -79,6 +79,10 @@ steps:
     - REGISTRY=${LOCATION}-docker.pkg.dev
     - IMAGE=${PROJECT_ID}/${REPO_NAME}/${_APP_NAME}:${TAG_NAME}
     - KEY=${_KMS_KEY_NAME}
+    args:
+    - -c
+    - |
+      /usr/local/bin/builder
 
   # Create release in Google Cloud Deploy
   - id: release
