@@ -70,9 +70,8 @@ steps:
       -note_name=${_NOTE_NAME}
 
   # Generate SBOM
-  # Generate SBOM
   - id: sbom
-    name: us-docker.pkg.dev/cloudy-demos/builders/sbom-builder:v0.2.8
+    name: us-docker.pkg.dev/cloudy-demos/builders/sbom-builder:v0.2.9
     entrypoint: /bin/bash
     waitFor: ["vulnsign"]
     env:
@@ -81,7 +80,7 @@ steps:
     - KEY=$_KMS_KEY_NAME
     - COMMIT=$COMMIT_SHA # optional
     - VERSION=$TAG_NAME  # optional
-    # - SCAN=yes # optional, if 'yes' builder will run vulnerability scan on SBOM and upload report to registry 
+    # - SCAN=yes # optional, if set, builder will run vulnerability scan on SBOM and upload report to registry 
     args:
     - -c
     - |
