@@ -24,9 +24,13 @@ steps:
     args:
     - '-c'
     - |-
-      snyk config set api=${_SNYK_TOKEN}
+      snyk config set api=${SNYK_TOKEN}
       snyk test --severity-threshold=medium
-        
+    availableSecrets:
+      secretManager:
+      - versionName: projects/799736955886/secrets/snyk-token/versions/1
+        env: 'SNYK_TOKEN'
+
   # Build image
   - id: build
     name: gcr.io/cloud-builders/docker
