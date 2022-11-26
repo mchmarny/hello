@@ -27,10 +27,6 @@ steps:
       snyk config set api=$$SNYK_TOKEN
       snyk test --severity-threshold=medium
     secretEnv: ['SNYK_TOKEN']
-    availableSecrets:
-      secretManager:
-      - versionName: projects/799736955886/secrets/snyk-token/versions/1
-        env: 'SNYK_TOKEN'
 
   # Build image
   - id: build
@@ -105,8 +101,14 @@ steps:
       --annotations=commitId=${REVISION_ID} \
       --images=${_APP_NAME}=$(/bin/cat image-digest.txt)
 
+availableSecrets:
+  secretManager:
+  - versionName: projects/799736955886/secrets/snyk-token/versions/1
+    env: 'SNYK_TOKEN'
+
 images:
 - ${LOCATION}-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$_APP_NAME:$TAG_NAME
+
 options:
   requestedVerifyOption: VERIFIED
   pool:
