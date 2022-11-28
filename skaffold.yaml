@@ -3,8 +3,6 @@ kind: Config
 metadata:
   name: hello
 build:
-  # local:
-  #   push: false
   artifacts:
   - image: hello
     docker:
@@ -15,8 +13,6 @@ deploy:
   kustomize:
     paths:
       - deployments/overlays/dev
-  # deploy:
-  #   kpt: {}
 profiles:
   - name: dev
     deploy:

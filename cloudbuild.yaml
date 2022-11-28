@@ -1,6 +1,5 @@
-# WORK IN PROGRESS
-# Overview: release via Google Cloud Deploy for GKE
-# Requires git commit triggering to populate COMMIT_SHA variable
+# Overview: Cloud Build build pipeline with Cloud Deploy release 
+# Note: COMMIT_SHA variable requires git tag commit
 
 substitutions:
   _APP_NAME: hello
@@ -110,6 +109,11 @@ images:
 - ${LOCATION}-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$_APP_NAME:$TAG_NAME
 
 options:
-  requestedVerifyOption: VERIFIED
+  requestedVerifyOption: VERIFIED # ensure attestation gen, provenance metadata, for this build
+  sourceProvenanceHash: ["SHA256"]
   pool:
     name: 'projects/$PROJECT_ID/locations/$LOCATION/workerPools/$_POOL_NAME'
+
+tags:
+- demo
+- hello
