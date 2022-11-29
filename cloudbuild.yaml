@@ -72,20 +72,19 @@ steps:
 
   # Generate SBOM
   - id: sbom
-    name: us-docker.pkg.dev/cloudy-demos/builders/sbom-builder:v0.2.9
+    name: us-docker.pkg.dev/cloudy-demos/builders/sbom-builder:v0.3.1
     entrypoint: /bin/bash
     waitFor: ["vulnsign"]
     env:
     - PROJECT=$PROJECT_ID
-    - REGISTRY=${LOCATION}-docker.pkg.dev
     - KEY=$_KMS_KEY_NAME
     - COMMIT=$COMMIT_SHA # optional
     - VERSION=$TAG_NAME  # optional
-    # - SCAN=yes # optional, if set, builder will run vulnerability scan on SBOM and upload report to registry 
+    # - SCAN=yes # optional, if set, builder will upload report to registry  vulnerability scan based on SBOM
     args:
     - -c
     - |
-      /usr/local/bin/builder $(/bin/cat image-digest.txt)
+      builder $(/bin/cat image-digest.txt)
 
   # Create release in Google Cloud Deploy
   - id: release
