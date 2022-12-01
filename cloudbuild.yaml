@@ -15,8 +15,8 @@ steps:
     entrypoint: /bin/bash
     args: ["-c", "make test"]
 
-  # Scan code 
-  - id: scan
+  # Static code analysis
+  - id: analyze
     name: snyk/snyk:golang
     entrypoint: /bin/bash
     waitFor: ["test"]
@@ -31,7 +31,7 @@ steps:
   - id: build
     name: gcr.io/cloud-builders/docker
     entrypoint: /bin/bash
-    waitFor: ["scan"]
+    waitFor: ["analyze"]
     args:
     - -c
     - |
@@ -53,11 +53,26 @@ steps:
       docker image inspect "${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${_APP_NAME}:${TAG_NAME}" --format '{{index .RepoDigests 0}}' > image-digest.txt && 
       cat image-digest.txt
 
-  # Test against my vulnerability policy
-  - id: vulnsign
-    name: gcr.io/$PROJECT_ID/kritis-signer
+  # Generate SBOM (includes vulnerability scan)
+  - id: sbom
+    name: us-docker.pkg.dev/cloudy-demos/builders/sbom-builder:v0.3.6
     entrypoint: /bin/bash
     waitFor: ["publish"]
+    env:
+    - PROJECT=$PROJECT_ID
+    - KEY=$_KMS_KEY_NAME
+    - COMMIT=$COMMIT_SHA
+    - VERSION=$TAG_NAME
+    args:
+    - -c
+    - |
+      builder $(/bin/cat image-digest.txt)
+
+  # Test against my vulnerability policy
+  - id: policy
+    name: gcr.io/$PROJECT_ID/kritis-signer
+    entrypoint: /bin/bash
+    waitFor: ["sbom"]
     args:
     - -c
     - |
@@ -70,27 +85,11 @@ steps:
       -kms_digest_alg=${_KMS_DIGEST_ALG} \
       -note_name=${_NOTE_NAME}
 
-  # Generate SBOM
-  - id: sbom
-    name: us-docker.pkg.dev/cloudy-demos/builders/sbom-builder:v0.3.4
-    entrypoint: /bin/bash
-    waitFor: ["vulnsign"]
-    env:
-    - PROJECT=$PROJECT_ID
-    - KEY=$_KMS_KEY_NAME
-    - COMMIT=$COMMIT_SHA # optional
-    - VERSION=$TAG_NAME  # optional
-    # - SCAN=yes # optional, if set, builder will upload report to registry  vulnerability scan based on SBOM
-    args:
-    - -c
-    - |
-      builder $(/bin/cat image-digest.txt)
-
   # Create release in Google Cloud Deploy
   - id: release
     name: gcr.io/google.com/cloudsdktool/cloud-sdk
     entrypoint: /bin/bash
-    waitFor: ["sbom"]
+    waitFor: ["policy"]
     args:
     - -c
     - |
