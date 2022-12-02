@@ -5,15 +5,22 @@ substitutions:
   _APP_NAME: hello
   _PIPELINE_NAME: deploy-demo-pipeline
   _POOL_NAME: demo-pool
+  _GO_VERSION: "1.19"
+  _SBOM_BUILDER: v0.3.7
+  _SNYK_SECRET_URI: projects/799736955886/secrets/snyk-token/versions/1
 
 steps:
   # Go test
   - id: test
-    name: golang:1.19
+    name: golang:${_GO_VERSION}
     env:
     - GO111MODULE=on
     entrypoint: /bin/bash
-    args: ["-c", "make test"]
+    args:
+    - -c
+    - |
+      go test -short -count=1 -race -covermode=atomic \
+        -coverprofile=cover.out ./...
 
   # Static code analysis
   - id: analyze
@@ -38,7 +45,6 @@ steps:
       docker build --build-arg VERSION=${TAG_NAME} \
         -t "${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${_APP_NAME}:${COMMIT_SHA}" \
         -t "${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${_APP_NAME}:${TAG_NAME}" \
-        -t "${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${_APP_NAME}:latest" \
         .
   
   # Publish image, get sha256
@@ -48,14 +54,15 @@ steps:
     waitFor: ["build"]
     args:
     - -c
-    - |
-      docker push "${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${_APP_NAME}:${TAG_NAME}" &&
-      docker image inspect "${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${_APP_NAME}:${TAG_NAME}" --format '{{index .RepoDigests 0}}' > image-digest.txt && 
+    - |-
+      docker push "${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${_APP_NAME}:${TAG_NAME}"
+      docker image inspect "${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${_APP_NAME}:${TAG_NAME}" \
+        --format '{{index .RepoDigests 0}}' > image-digest.txt
       cat image-digest.txt
 
   # Generate SBOM (includes vulnerability scan)
   - id: sbom
-    name: us-docker.pkg.dev/cloudy-demos/builders/sbom-builder:v0.3.7
+    name: us-docker.pkg.dev/cloudy-demos/builders/sbom-builder:${_SBOM_BUILDER}
     entrypoint: /bin/bash
     waitFor: ["publish"]
     env:
@@ -101,7 +108,7 @@ steps:
 
 availableSecrets:
   secretManager:
-  - versionName: projects/799736955886/secrets/snyk-token/versions/1
+  - versionName: $_SNYK_SECRET_URI
     env: 'SNYK_TOKEN'
 
 images:
