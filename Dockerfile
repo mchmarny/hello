@@ -1,5 +1,5 @@
 # BUILD
-FROM golang:latest as builder
+FROM golang:1.19 as builder
 
 # copy
 WORKDIR /src/
