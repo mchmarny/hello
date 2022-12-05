@@ -74,6 +74,7 @@ linters:
 issues:
   exclude:
     - G404
+    - G112
 
 run:
   concurrency: 4
