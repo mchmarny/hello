@@ -9,6 +9,10 @@ build:
       dockerfile: Dockerfile
     sync:
       infer: ["**/*"]
+test:
+- image: hello
+  custom:
+  - command: go test -short -count=1 -race
 deploy:
   kustomize:
     paths:
