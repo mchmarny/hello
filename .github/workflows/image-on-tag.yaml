@@ -98,11 +98,9 @@ jobs:
 
     - name: Sign Image
       run: |
+        cat $(cat ./image-digest)
         cosign generate-key-pair --kms ${{ env.KEY }}
-        cosign sign --force --key ${{ env.KEY }} \
-          -a "version=${{ env.RELEASE_VERSION }}" \
-          -a "commit=${{ env.RELEASE_VERSION }}" \
-          $(cat ./image-digest) 
+        cosign sign --force --key ${{ env.KEY }} -a "version=${{ env.RELEASE_VERSION }}" -a "commit=${{ env.GITHUB_SHA }}" $(cat ./image-digest) 
         cosign verify --key ${{ env.KEY }} $(cat ./image-digest)
       env:
         COSIGN_EXPERIMENTAL: 1
