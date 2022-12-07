@@ -7,7 +7,7 @@ on:
 
 env:
   # there is nothing secret really here so don't bother with changing this GHA secret
-  KEY: gcpkms://projects/cloudy-demos/locations/us-west1/keyRings/github-actions/cryptoKeys/builder/cryptoKeyVersions/1
+  KEY: gcpkms://projects/cloudy-demos/locations/us-west1/keyRings/github-actions/cryptoKeys/signer/cryptoKeyVersions/1
   
 jobs:
 
