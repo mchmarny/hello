@@ -11,6 +11,7 @@ env:
   
 jobs:
 
+  # this will unit test, lint, and scan for vulnerabilities 
   test:
     uses: ./.github/workflows/test-on-call.yaml
     secrets:
@@ -31,7 +32,7 @@ jobs:
     - name: Setup Go
       uses: actions/setup-go@v3
       with:
-        go-version: '1.19'
+        go-version: '1.19.4'
     - run: go version
 
     - name: Cache Go Modules
@@ -50,19 +51,14 @@ jobs:
     - name: Capture Variables
       run: |
         echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
-
-    - name: Scan for Vulnerabilities
-      uses: snyk/actions/golang@master
-      env:
-        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-      with:
-        args: --severity-threshold=medium
       
     - id: auth
       name: Get GCP token
       uses: google-github-actions/auth@v1
       with:
           token_format: "access_token"
+          # some may consider project number and service account name to be private, 
+          # move to GHA secrets if that's the case.
           workload_identity_provider: projects/799736955886/locations/global/workloadIdentityPools/github-pool/providers/github-provider
           service_account: github-actions-user@cloudy-demos.iam.gserviceaccount.com
 
@@ -72,7 +68,9 @@ jobs:
     - name: Login With ko
       run: |
         ko version
-        ko login gcr.io --username=oauth2accesstoken --password=${{ steps.auth.outputs.access_token }}
+        ko login gcr.io \
+          --username=oauth2accesstoken \
+          --password=${{ steps.auth.outputs.access_token }}
 
     - name: Tidy Modules
       run: |
@@ -94,12 +92,17 @@ jobs:
     - name: Login With cosign
       run: |
         cosign version
-        cosign login us-west1-docker.pkg.dev --username=oauth2accesstoken --password=${{ steps.auth.outputs.access_token }}
+        cosign login us-west1-docker.pkg.dev \
+          --username=oauth2accesstoken \
+          --password=${{ steps.auth.outputs.access_token }}
 
     - name: Sign Image
-      run: |-
-        cosign generate-key-pair --kms $KEY
-        cosign sign --key $KEY -a "version=${{ env.RELEASE_VERSION }}" -a "commit=${{ env.RELEASE_VERSION }}" $(cat ./image-digest)
-        cosign verify --key $KEY $(cat ./image-digest)
+      run: |
+        cosign generate-key-pair --kms ${{ env.KEY }}
+        cosign sign --key ${{ env.KEY }} \
+          -a "version=${{ env.RELEASE_VERSION }}" \
+          -a "commit=${{ env.RELEASE_VERSION }}" \
+          $(cat ./image-digest)
+        cosign verify --key ${{ env.KEY }} $(cat ./image-digest)
       env:
         COSIGN_EXPERIMENTAL: 1
