@@ -100,7 +100,6 @@ jobs:
       run: |
         cat ./image-digest
         cosign generate-key-pair --kms ${{ env.KEY }}
-        cosign sign --force --key ${{ env.KEY }} -a "version=${{ env.RELEASE_VERSION }}" -a "commit=${{ github.sha }}" $(cat ./image-digest) 
-        cosign verify --key ${{ env.KEY }} $(cat ./image-digest)
+        cosign sign -d --force --key ${{ env.KEY }} -a "version=${{ env.RELEASE_VERSION }}" -a "commit=${{ github.sha }}" $(cat ./image-digest)
       env:
         COSIGN_EXPERIMENTAL: 1
