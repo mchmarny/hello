@@ -4,11 +4,17 @@ on:
   push:
     tags:
       - 'v*.*.*'
+
+env:
+  # there is nothing secret really here so don't bother with changing this GHA secret
+  KEY: gcpkms://projects/cloudy-demos/locations/us-west1/keyRings/github-actions/cryptoKeys/builder/cryptoKeyVersions/1
   
 jobs:
 
   test:
     uses: ./.github/workflows/test-on-call.yaml
+    secrets:
+      token: ${{ secrets.SNYK_TOKEN }}
 
   push:
     runs-on: ubuntu-latest
@@ -91,8 +97,9 @@ jobs:
         cosign login us-west1-docker.pkg.dev --username=oauth2accesstoken --password=${{ steps.auth.outputs.access_token }}
 
     - name: Sign Image
-      run: |
-        cosign sign --force $(cat ./image-digest) 
+      run: |-
+        cosign generate-key-pair --kms $KEY
+        cosign sign --key $KEY -a "version=${{ env.RELEASE_VERSION }}" -a "commit=${{ env.RELEASE_VERSION }}" $(cat ./image-digest)
+        cosign verify --key $KEY $(cat ./image-digest)
       env:
         COSIGN_EXPERIMENTAL: 1
-        
