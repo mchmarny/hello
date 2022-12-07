@@ -99,10 +99,10 @@ jobs:
     - name: Sign Image
       run: |
         cosign generate-key-pair --kms ${{ env.KEY }}
-        cosign sign --key ${{ env.KEY }} \
+        cosign sign --force --key ${{ env.KEY }} \
           -a "version=${{ env.RELEASE_VERSION }}" \
           -a "commit=${{ env.RELEASE_VERSION }}" \
-          $(cat ./image-digest)
+          $(cat ./image-digest) 
         cosign verify --key ${{ env.KEY }} $(cat ./image-digest)
       env:
         COSIGN_EXPERIMENTAL: 1
