@@ -2,6 +2,9 @@ name: test
 
 on:
   workflow_call:
+    secrets:
+      token:
+        required: true
     
 jobs:
 
@@ -50,5 +53,12 @@ jobs:
     - name: Unit Test
       run: |
         make test
+
+    - name: Scan for Vulnerabilities
+      uses: snyk/actions/golang@master
+      env:
+        SNYK_TOKEN: ${{ secrets.token }}
+      with:
+        args: --severity-threshold=medium
 
 
