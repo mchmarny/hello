@@ -5,8 +5,6 @@ on:
     secrets:
       registry:
         required: true
-      token:
-        required: true
       image:
         required: true
       id_provider:
