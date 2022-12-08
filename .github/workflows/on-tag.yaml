@@ -20,12 +20,12 @@ jobs:
     secrets:
       token: ${{ secrets.SNYK_TOKEN }}
     with:
-      GO_VERSION: ${{ env.GO_VERSION }}
+      go_version: ${{ env.GO_VERSION }}
 
   image:
     uses: ./.github/workflows/image.yaml
     needs: test
-    secrets:
+    with:
       go_version: ${{ env.GO_VERSION }}
       registry: ${{ env.REGISTRY }}
       image: ${{ env.IMAGE }}
@@ -35,7 +35,7 @@ jobs:
   sign:
     uses: ./.github/workflows/sign.yaml
     needs: image
-    secrets:
+    with:
       registry: ${{ env.REGISTRY }}
       id_provider: ${{ env.PROVIDER }}
       service_account: ${{ env.ACCOUNT }}
