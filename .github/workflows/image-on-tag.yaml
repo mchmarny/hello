@@ -75,7 +75,6 @@ jobs:
         images: |
           ${{ env.IMG }}
         tags: |
-          type=sha,enable=true,format=long,priority=9999
           type=raw,enable=true,value=${{ env.RELEASE_VERSION }}
           type=raw,enable=true,value=${{ env.GITHUB_SHA }}
 
