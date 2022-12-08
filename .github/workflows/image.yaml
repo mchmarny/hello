@@ -61,7 +61,7 @@ jobs:
       with:
         registry: ${{ env.REGISTRY }}
         username: oauth2accesstoken
-        password: ${{ secrets.token }}
+        password: ${{ steps.auth.outputs.access_token }}
     - name: Image Push
       id: push
       uses: docker/build-push-action@v3

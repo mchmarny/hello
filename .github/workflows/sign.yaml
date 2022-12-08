@@ -14,7 +14,7 @@ env:
       
 jobs:
 
-  push:
+  sign:
     runs-on: ubuntu-latest
     permissions:
       contents: read
