@@ -2,7 +2,7 @@ name: image
 
 on:
   workflow_call:
-    secrets:
+
 
 env:
   PROVIDER: projects/799736955886/locations/global/workloadIdentityPools/github-pool/providers/github-provider

@@ -18,6 +18,7 @@ jobs:
 
   image:
     uses: ./.github/workflows/image.yaml
+    needs: test
 
   sign:
     uses: ./.github/workflows/sign.yaml
