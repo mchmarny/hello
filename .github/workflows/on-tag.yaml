@@ -19,7 +19,8 @@ jobs:
     uses: ./.github/workflows/test.yaml
     secrets:
       token: ${{ secrets.SNYK_TOKEN }}
-      go_version: ${{ env.GO_VERSION }}
+    with:
+      GO_VERSION: ${{ env.GO_VERSION }}
 
   image:
     uses: ./.github/workflows/image.yaml
