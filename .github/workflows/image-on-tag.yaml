@@ -114,5 +114,5 @@ jobs:
       run: |
         cosign sign --force --key ${{ env.KEY }} ${TAGS}
       env:
-        TAGS: ${{ steps.docker_meta.outputs.tags }}
+        TAGS: ${{ steps.meta.outputs.tags }}
         COSIGN_PASSWORD: ${{ steps.auth.outputs.access_token }}
