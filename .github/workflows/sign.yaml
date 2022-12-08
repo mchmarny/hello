@@ -96,6 +96,10 @@ jobs:
       run: |
         ${{steps.grype.outputs.cmd}} -f ${{ inputs.vuln_severity_cutoff }} --add-cpes-if-none sbom:sbom.spdx.json -o json > vulns.grype.json
 
+    - name: Print Vulnerability Report
+      run: |
+        cat vulns.grype.json
+
     - name: Attest Vulnerability
       run: |
         cosign attest --predicate vulns.grype.json --key ${{ inputs.key }} ${{ inputs.digest }}
