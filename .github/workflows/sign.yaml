@@ -70,12 +70,13 @@ jobs:
         image: ${{ inputs.digest }}
         registry-username: oauth2accesstoken
         registry-password: ${{ steps.auth.outputs.access_token }}
+        output-file: .
         artifact-name: sbom.spdx.json
         format: spdx-json
 
     - name: Attest SBOM
       run: |
-        cosign attest --predicate sbom.spdx.json --key ${{ inputs.key }} ${{ inputs.digest }}
+        cosign attest --predicate ./sbom.spdx.json --key ${{ inputs.key }} ${{ inputs.digest }}
       env:
         COSIGN_PASSWORD: ${{ steps.auth.outputs.access_token }}
 
