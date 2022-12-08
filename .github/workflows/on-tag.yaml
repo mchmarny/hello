@@ -11,7 +11,7 @@ env:
   ACCOUNT: github-actions-user@cloudy-demos.iam.gserviceaccount.com
   REGISTRY: us-west1-docker.pkg.dev
   IMAGE: us-west1-docker.pkg.dev/cloudy-demos/hello-gha/hello
-  GO_VERSION: '1.19.4'
+  GO_VERSION: "1.19.4"
   
 jobs:
 
