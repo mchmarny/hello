@@ -6,8 +6,12 @@ on:
       - 'v*.*.*'
 
 env:
-  REG: us-west1-docker.pkg.dev
-  IMG: us-west1-docker.pkg.dev/cloudy-demos/hello-gha/hello
+  KEY: gcpkms://projects/cloudy-demos/locations/us-west1/keyRings/github-actions/cryptoKeys/signer/cryptoKeyVersions/1
+  PROVIDER: projects/799736955886/locations/global/workloadIdentityPools/github-pool/providers/github-provider
+  ACCOUNT: github-actions-user@cloudy-demos.iam.gserviceaccount.com
+  REGISTRY: us-west1-docker.pkg.dev
+  IMAGE: us-west1-docker.pkg.dev/cloudy-demos/hello-gha/hello
+  GO_VERSION: '1.19.4'
   
 jobs:
 
@@ -15,14 +19,24 @@ jobs:
     uses: ./.github/workflows/test.yaml
     secrets:
       token: ${{ secrets.SNYK_TOKEN }}
+      go-version: ${{ env.GO_VERSION }}
 
   image:
     uses: ./.github/workflows/image.yaml
     needs: test
+    secrets:
+      go-version: ${{ env.GO_VERSION }}
+      registry: ${{ env.REGISTRY }}
+      image: ${{ env.IMAGE }}
+      id_provider: ${{ env.PROVIDER }}
+      service_account: ${{ env.ACCOUNT }}
 
   sign:
     uses: ./.github/workflows/sign.yaml
     needs: image
     secrets:
-      token: ${{ needs.image.output.token }}
+      registry: ${{ env.REGISTRY }}
+      id_provider: ${{ env.PROVIDER }}
+      service_account: ${{ env.ACCOUNT }}
       digest: ${{ needs.image.output.digest }}
+      key: ${{ env.KEY }}

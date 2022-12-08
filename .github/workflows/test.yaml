@@ -5,6 +5,8 @@ on:
     secrets:
       token:
         required: true
+      go-version:
+        required: true
     
 jobs:
 
@@ -16,7 +18,7 @@ jobs:
     - name: Setup Go
       uses: actions/setup-go@v3
       with:
-        go-version: '1.19.4'
+        go-version: ${{ secrets.go-version }}
     - run: go version
 
     - name: Cache Go Modules
