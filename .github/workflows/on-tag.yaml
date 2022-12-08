@@ -6,6 +6,11 @@ on:
       - 'v*.*.*'
 
 env:
+  KEY: gcpkms://projects/cloudy-demos/locations/us-west1/keyRings/github-actions/cryptoKeys/signer/cryptoKeyVersions/1
+  ID_PROVIDER: projects/799736955886/locations/global/workloadIdentityPools/github-pool/providers/github-provider
+  SERVICE_ACCOUNT: github-actions-user@cloudy-demos.iam.gserviceaccount.com
+  IMAGE: us-west1-docker.pkg.dev/cloudy-demos/hello-gha/hello
+  REGISTRY: us-west1-docker.pkg.dev
   GO_VERSION: "1.19.4"
   
 jobs:
@@ -14,25 +19,13 @@ jobs:
     uses: ./.github/workflows/test.yaml
     secrets:
       token: ${{ secrets.SNYK_TOKEN }}
-    with:
-      go_version: "1.19.4"
 
   image:
     uses: ./.github/workflows/image.yaml
     needs: test
-    with:
-      go_version: "1.19.4"
-      registry: us-west1-docker.pkg.dev
-      image: us-west1-docker.pkg.dev/cloudy-demos/hello-gha/hello
-      id_provider: projects/799736955886/locations/global/workloadIdentityPools/github-pool/providers/github-provider
-      service_account: github-actions-user@cloudy-demos.iam.gserviceaccount.com
 
   sign:
     uses: ./.github/workflows/sign.yaml
     needs: image
     with:
-      registry: us-west1-docker.pkg.dev
-      id_provider: projects/799736955886/locations/global/workloadIdentityPools/github-pool/providers/github-provider
-      service_account: github-actions-user@cloudy-demos.iam.gserviceaccount.com
-      digest: ${{ needs.image.output.digest }}
-      key: gcpkms://projects/cloudy-demos/locations/us-west1/keyRings/github-actions/cryptoKeys/signer/cryptoKeyVersions/1
+      digest: ${{ needs.steps.push.outputs.digest }}
