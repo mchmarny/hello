@@ -1,0 +1,22 @@
+output: "json"
+file: "vulns.grype.json"
+add-cpes-if-none: true
+db:
+  auto-update: true
+  update-url: "https://toolbox-data.anchore.io/grype/databases/listing.json"
+  validate-age: true
+  max-allowed-built-age: "12h"
+
+search:
+  scope: "all-layers"
+  indexed-archives: true
+  unindexed-archives: false
+
+log:
+  structured: true
+  level: "error"
+  file: "grype.log"
+
+match:
+  golang:
+    using-cpes: true

@@ -95,7 +95,7 @@ jobs:
     - name: Scan SBOM
       run: |
         # Add -f ${{ inputs.vuln_severity_cutoff }}
-        ${{steps.grype.outputs.cmd}} --add-cpes-if-none sbom:sbom.spdx.json -o json > vulns.grype.json
+        ${{steps.grype.outputs.cmd}} sbom:sbom.spdx.json --file vulns.grype.json
 
     - name: Print Vulnerability Report
       run: |
