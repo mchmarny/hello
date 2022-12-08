@@ -70,7 +70,8 @@ jobs:
         image: ${{ inputs.digest }}
         registry-username: oauth2accesstoken
         registry-password: ${{ steps.auth.outputs.access_token }}
-        output-file: sbom.spdx.json
+        artifact-name: sbom.spdx.json
+        output-file: ./sbom.spdx.json
         format: spdx-json
 
     - name: List Dir
