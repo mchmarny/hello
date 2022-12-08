@@ -67,23 +67,25 @@ jobs:
           workload_identity_provider: projects/799736955886/locations/global/workloadIdentityPools/github-pool/providers/github-provider
           service_account: github-actions-user@cloudy-demos.iam.gserviceaccount.com
 
+    - name: Docker meta
+      id: meta
+      uses: docker/metadata-action@v4
+      with:
+        images: |
+          us-west1-docker.pkg.dev/cloudy-demos/hello-gha/hello
+        tags: |
+          type=ref,event=branch
+          type=ref,event=tag
+          type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+          type=sha
+
     - name: Docker login
       uses: docker/login-action@v2
       with:
         registry: ${{ env.REG }}
         username: oauth2accesstoken
         password: ${{ steps.auth.outputs.access_token }}
-
-    - name: Docker meta
-      id: meta
-      uses: docker/metadata-action@v4
-      with:
-        images: us-west1-docker.pkg.dev/cloudy-demos/hello-gha/hello
-        tags: |
-          type=ref,event=branch
-          type=ref,event=pr
-          type=semver,pattern={{version}}
-          type=semver,pattern={{major}}.{{minor}}
   
     - name: Image build and push
       uses: docker/build-push-action@v3
