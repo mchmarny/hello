@@ -24,6 +24,10 @@ on:
         default: '1.19.4'
         required: false
         type: string
+    outputs:
+      digest:
+        description: "Digest of the published image"
+        value: ${{ jobs.image.outputs.digest }}
 
 jobs:
 
