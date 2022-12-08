@@ -31,7 +31,7 @@ jobs:
    
     - name: Print Digest
       run: |
-        echo "${{ secrets.digest }}"
+        echo "${{ inputs.digest }}"
     
     - id: auth
       name: Get GCP token
@@ -61,10 +61,26 @@ jobs:
       env:
         COSIGN_PASSWORD: ${{ steps.auth.outputs.access_token }}
 
-    - uses: anchore/sbom-action@v0
+    - name: Gen SBOM
+      uses: anchore/sbom-action@v0
       with:
         image: ${{ inputs.digest }}
         registry-username: oauth2accesstoken
         registry-password: ${{ steps.auth.outputs.access_token }}
         artifact-name: sbom.spdx.json
         format: spdx-json
+
+    - name: Attest SBOM
+      run: |
+        cosign attest --predicate sbom.spdx.json --key ${{ secrets.key }} ${{ inputs.digest }}
+      env:
+        COSIGN_PASSWORD: ${{ steps.auth.outputs.access_token }}
+
+    - name: Download Vulnerability Scanner
+      uses: anchore/scan-action/download-grype@v3
+      id: grype
+
+    - name: Scan SBOM
+      run: |
+        ${{steps.grype.outputs.cmd}} --add-cpes-if-none sbom:sbom.spdx.json -o json > vulns.grype.json
+      
