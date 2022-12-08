@@ -60,6 +60,6 @@ jobs:
         cosign generate-key-pair --kms ${{ inputs.key }}
     - name: Sign Image
       run: |
-        cosign sign --force --key ${{ inputs.key }} {{ inputs.digest }}
+        cosign sign --force --key ${{ inputs.key }} ${{ inputs.digest }}
       env:
         COSIGN_PASSWORD: ${{ steps.auth.outputs.access_token }}
