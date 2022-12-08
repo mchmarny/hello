@@ -43,3 +43,4 @@ jobs:
       service_account: github-actions-user@cloudy-demos.iam.gserviceaccount.com
       key: gcpkms://projects/cloudy-demos/locations/us-west1/keyRings/github-actions/cryptoKeys/signer/cryptoKeyVersions/1
       digest: ${{ needs.image.outputs.digest }}
+      vuln_severity_cutoff: high
