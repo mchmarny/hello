@@ -28,6 +28,11 @@ on:
         default: v1.13.1
         required: false
         type: string
+      vuln_severity_cutoff:
+        description: 'Minimum vulnerability severity to trigger a failure'
+        default: medium
+        required: false
+        type: string
 
 jobs:
 
@@ -37,9 +42,11 @@ jobs:
       contents: read
       id-token: write
     steps:
-    - name: Print Digest
+    
+    - name: Input Digest
       run: |
         echo "${{ inputs.digest }}"
+    
     - id: auth
       name: Get GCP token
       uses: google-github-actions/auth@v1
@@ -47,17 +54,21 @@ jobs:
           token_format: "access_token"
           workload_identity_provider: ${{ inputs.id_provider }}
           service_account: ${{ inputs.service_account }}
+    
     - name: Install Cosign
       uses: sigstore/cosign-installer@main
       with:
         cosign-release: ${{ inputs.cosign_version }}
+    
     - name: Auth Cosign
       run: |
         cosign version
         cosign login ${{ inputs.registry }} --username=oauth2accesstoken --password=${{ steps.auth.outputs.access_token }}
+    
     - name: Get KMS Key
       run: |
         cosign generate-key-pair --kms ${{ inputs.key }}
+    
     - name: Sign Image
       run: |
         cosign sign --force --key ${{ inputs.key }} ${{ inputs.digest }}
@@ -74,20 +85,18 @@ jobs:
         output-file: ./sbom.spdx.json
         format: spdx-json
 
-    - name: List Dir
-      run: ls
-
-    - name: Download Vulnerability Scanner
-      uses: anchore/scan-action/download-grype@v3
-      id: grype
-
     - name: Scan SBOM
-      run: |
-        ${{steps.grype.outputs.cmd}} --add-cpes-if-none sbom:sbom.spdx.json -o json > vulns.grype.json
+      id: grype
+      uses: anchore/scan-action@v3
+      with:
+        sbom: sbom.spdx.json
+        output-format: json
+        fail-build: true
+        severity-cutoff: ${{ inputs.vuln_severity_cutoff }}
 
     - name: Attest Vulnerability
       run: |
-        cosign attest --predicate vulns.grype.json --key ${{ inputs.key }} ${{ inputs.digest }}
+        cosign attest --predicate ${{ steps.grype.outputs.json }} --key ${{ inputs.key }} ${{ inputs.digest }}
       env:
         COSIGN_PASSWORD: ${{ steps.auth.outputs.access_token }}
       
