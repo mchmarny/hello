@@ -74,7 +74,7 @@ jobs:
         images: |
           us-west1-docker.pkg.dev/cloudy-demos/hello-gha/hello
         tags: |
-          type=sha,enable=true,format=long
+          type=sha,enable=true,format=long,priority=9999
           type=raw,enable=true,value=${{ env.RELEASE_VERSION }}
           type=raw,enable=true,value=${{ env.GITHUB_SHA }}
 
