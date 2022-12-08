@@ -79,7 +79,7 @@ jobs:
     - id: publish
       name: Publish Image
       run: |
-        ko build . --image-refs ./image-digest --bare --tags ${{ env.RELEASE_VERSION }},latest
+        ko build . --image-refs ./image-digest --bare --tags ${{ env.RELEASE_VERSION }},${{ github.sha }}
       env:
         KO_DOCKER_REPO: us-west1-docker.pkg.dev/cloudy-demos/hello-gha/hello
         GOFLAGS: "-ldflags=-X=main.version=${{ env.RELEASE_VERSION }}"
@@ -92,14 +92,13 @@ jobs:
     - name: Login With cosign
       run: |
         cosign version
-        cosign login us-west1-docker.pkg.dev \
-          --username=oauth2accesstoken \
-          --password=${{ steps.auth.outputs.access_token }}
+        cosign login us-west1-docker.pkg.dev --username=oauth2accesstoken --password=${{ steps.auth.outputs.access_token }}
 
     - name: Sign Image
       run: |
         cat ./image-digest
         cosign generate-key-pair --kms ${{ env.KEY }}
         cosign sign -d --force --key ${{ env.KEY }} -a "version=${{ env.RELEASE_VERSION }}" -a "commit=${{ github.sha }}" $(cat ./image-digest)
+
       env:
         COSIGN_EXPERIMENTAL: 1
