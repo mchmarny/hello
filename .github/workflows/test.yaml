@@ -5,13 +5,10 @@ on:
     secrets:
       token:
         required: true
-    inputs:
       go_version:
-        description: 'Version of Go to use for tests'
-        default: '1.19.4'
-        required: false
-        type: string
-    
+        required: true
+
+
 jobs:
 
   test:
@@ -22,7 +19,7 @@ jobs:
     - name: Setup Go
       uses: actions/setup-go@v3
       with:
-        go-version: ${{ inputs.go_version }}
+        go-version: ${{ secrets.go_version }}
     - run: go version
 
     - name: Cache Go Modules
