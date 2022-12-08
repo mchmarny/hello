@@ -1,0 +1,27 @@
+name: publish
+
+on:  
+  push:
+    tags:
+      - 'v*.*.*'
+
+env:
+  REG: us-west1-docker.pkg.dev
+  IMG: us-west1-docker.pkg.dev/cloudy-demos/hello-gha/hello
+  
+jobs:
+
+  test:
+    uses: ./.github/workflows/test.yaml
+    secrets:
+      token: ${{ secrets.SNYK_TOKEN }}
+
+  image:
+    uses: ./.github/workflows/image.yaml
+
+  sign:
+    uses: ./.github/workflows/sign.yaml
+    needs: push
+    secrets:
+      token: ${{ needs.image.output.token }}
+      digest: ${{ needs.image.output.digest }}

@@ -11,6 +11,6 @@ on:
 jobs:
 
   test:
-    uses: ./.github/workflows/test-on-call.yaml
+    uses: ./.github/workflows/test.yaml
     secrets:
       token: ${{ secrets.SNYK_TOKEN }}
