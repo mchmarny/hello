@@ -3,6 +3,8 @@ name: image
 on:
   workflow_call:
     secrets:
+      registry:
+        required: true
       token:
         required: true
       image:
