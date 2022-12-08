@@ -2,6 +2,28 @@ name: image
 
 on:
   workflow_call:
+    inputs:
+      registry:
+        description: 'Registry URI'
+        required: true
+        type: string
+      image:
+        description: 'Image name (without tag or sha)'
+        required: true
+        type: string
+      id_provider:
+        description: 'Fully qualified path of the OIDC provider'
+        required: true
+        type: string
+      service_account:
+        description: 'Service account email to use to auth to the provider'
+        required: true
+        type: string
+      go_version:
+        description: 'Version og Go to use for tests'
+        default: '1.19.4'
+        required: false
+        type: string
 
 jobs:
 
@@ -14,7 +36,7 @@ jobs:
     - name: Setup Go
       uses: actions/setup-go@v3
       with:
-        go-version: ${{ env.GO_VERSION }}
+        go-version: ${{ inputs.go_version }}
     - run: go version
     - name: Cache Modules
       uses: actions/cache@v3
@@ -38,21 +60,21 @@ jobs:
       uses: google-github-actions/auth@v1
       with:
           token_format: "access_token"
-          workload_identity_provider: ${{ env.ID_PROVIDER }}
-          service_account: ${{ env.SERVICE_ACCOUNT }}
+          workload_identity_provider: ${{ inputs.id_provider }}
+          service_account: ${{ inputs.service_account }}
     - name: Define Metadata
       id: meta
       uses: docker/metadata-action@v4
       with:
         images: |
-          ${{ env.IMAGE }}
+          ${{ inputs.image }}
         tags: |
           type=raw,enable=true,value=${{ env.RELEASE_VERSION }}
           type=raw,enable=true,value=${{ env.GITHUB_SHA }}
     - name: Registry Auth
       uses: docker/login-action@v2
       with:
-        registry: ${{ env.REGISTRY }}
+        registry: ${{ inputs.registry }}
         username: oauth2accesstoken
         password: ${{ steps.auth.outputs.access_token }}
     - name: Image Push
