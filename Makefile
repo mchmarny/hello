@@ -65,43 +65,6 @@ key: ## Build and publishes S3C tools
 	cosign generate-key-pair --kms $(SIGN_KEY)
 .PHONY: key
 
-tools: ## Build and publishes S3C tools	
-	$(eval IMAGE_REG := $(REGISTRY)/$(PROJECT)/tools/s3c-helper)
-	$(eval IMAGE_TAG := $(IMAGE_REG):latest)
-
-	# build and push image to artifact registry 
-	docker build -f tools/s3c-helper/Dockerfile \
-	             -t $(IMAGE_TAG) \
-				 --platform linux/amd64 \
-				 .
-	docker push $(IMAGE_TAG)
-
-	# parse image sha from latest tag
-	$(eval IMAGE_SHA := $(shell docker inspect --format='{{index .RepoDigests 0}}' $(IMAGE_TAG)))
-	
-	# sign and verify image 
-	cosign sign --key $(SIGN_KEY) -a tag=latest $(IMAGE_SHA)
-	cosign verify --key $(SIGN_KEY) $(IMAGE_SHA)
-	
-	# generate sbom file from image 
-	syft --scope all-layers -o spdx-json=sbom.spdx.json $(IMAGE_SHA) \
-		| jq --compact-output > ./sbom.spdx.json
-
-	# generate vulnerability list from sbom file 
-	grype --add-cpes-if-none sbom:./sbom.spdx.json -o json \
-		| jq --compact-output > ./vuln.grype.json
-
-	# parse new sbom tag
-	$(eval SBOM_TAG := $(shell echo $(IMAGE_SHA) | tr ':' '-' | tr '@' ':'))
-
-	# upload, sign, and verify sbom
-	cosign upload blob -f ./sbom.spdx.json $(SBOM_TAG).sbom
-	cosign sign --key $(SIGN_KEY) $(SBOM_TAG).sbom
-	cosign verify --key $(SIGN_KEY) $(SBOM_TAG).sbom
-	
-	@echo "https://console.cloud.google.com/artifacts/docker/$(PROJECT)/us-west1/tools/s3c-helper?project=$(PROJECT)"
-.PHONY: tools
-
 verify: ## Verify previously signed image
 	cosign verify --key cosign.pub $(shell cat ./image-digest)
 .PHONY: verify
