@@ -9,6 +9,7 @@ env:
   # there is nothing secret really here so don't bother with changing this GHA secret
   KEY: gcpkms://projects/cloudy-demos/locations/us-west1/keyRings/github-actions/cryptoKeys/signer/cryptoKeyVersions/1
   REG: us-west1-docker.pkg.dev
+  IMG: us-west1-docker.pkg.dev/cloudy-demos/hello-gha/hello
   
 jobs:
 
@@ -72,7 +73,7 @@ jobs:
       uses: docker/metadata-action@v4
       with:
         images: |
-          us-west1-docker.pkg.dev/cloudy-demos/hello-gha/hello
+          ${{ env.IMG }}
         tags: |
           type=sha,enable=true,format=long,priority=9999
           type=raw,enable=true,value=${{ env.RELEASE_VERSION }}
@@ -111,7 +112,6 @@ jobs:
       
     - name: Sign image
       run: |
-        cosign sign --force --key ${{ env.KEY }} ${TAGS}
+        cosign sign --force --key ${{ env.KEY }} ${{ env.IMG }}@${{ steps.push.outputs.digest }}
       env:
-        TAGS: ${{ steps.meta.outputs.tags }}
         COSIGN_PASSWORD: ${{ steps.auth.outputs.access_token }}
