@@ -7,9 +7,14 @@ on:
   pull_request:
     branches:
       - main
-  
-jobs:
 
+# Using secrets to work around limitation in GitHub Actions
+# where you can't use env or inputs to pass to multiple reusable jobs.
+# Context: https://github.com/community/community/discussions/17554.
+# Secret values
+#   GO_VERSION: "1.19.4"
+
+jobs:
   test:
     uses: ./.github/workflows/test.yaml
     secrets:
