@@ -5,12 +5,9 @@ on:
     tags:
       - 'v*.*.*'
 
-# Using secrets to work around limitation in GitHub Actions
+# Duplicating inputs due to limitation in GitHub Actions
 # where you can't use env or inputs to pass to multiple reusable jobs.
 # Context: https://github.com/community/community/discussions/17554.
-# Some may consider project number, name, regions, key, sa names private 
-# so I guess the use of secrets for is not all bad.
-# Secret values
 #   KMS_KEY: gcpkms://projects/cloudy-demos/locations/us-west1/keyRings/github-actions/cryptoKeys/signer/cryptoKeyVersions/1
 #   ID_PROVIDER: projects/799736955886/locations/global/workloadIdentityPools/github-pool/providers/github-provider
 #   SERVICE_ACCOUNT: github-actions-user@cloudy-demos.iam.gserviceaccount.com
@@ -24,25 +21,25 @@ jobs:
     uses: ./.github/workflows/test.yaml
     secrets:
       token: ${{ secrets.SNYK_TOKEN }}
-      go_version: ${{ secrets.GO_VERSION }}
+    with:
+      go_version: "1.19.4"
 
   image:
     uses: ./.github/workflows/image.yaml
     needs: test
-    secrets:
-      registry: ${{ secrets.REGISTRY_URI }}
-      image: ${{ secrets.REGISTRY_URI }}/${{ secrets.REGISTRY_NAME }}/hello
-      id_provider: ${{ secrets.ID_PROVIDER }}
-      service_account: ${{ secrets.SERVICE_ACCOUNT }}
-      go_version: ${{ secrets.GO_VERSION }}
+    with:
+      go_version: "1.19.4"
+      registry: us-west1-docker.pkg.dev
+      image: us-west1-docker.pkg.dev/cloudy-demos/hello-gha/hello
+      id_provider: projects/799736955886/locations/global/workloadIdentityPools/github-pool/providers/github-provider
+      service_account: github-actions-user@cloudy-demos.iam.gserviceaccount.com
 
   sign:
     uses: ./.github/workflows/sign.yaml
     needs: image
-    secrets:
-      registry: ${{ secrets.REGISTRY_URI }}
-      id_provider: ${{ secrets.ID_PROVIDER }}
-      service_account: ${{ secrets.SERVICE_ACCOUNT }}
-      key: ${{ secrets.KMS_KEY }}
     with:
+      registry: us-west1-docker.pkg.dev
+      id_provider: projects/799736955886/locations/global/workloadIdentityPools/github-pool/providers/github-provider
+      service_account: github-actions-user@cloudy-demos.iam.gserviceaccount.com
+      key: gcpkms://projects/cloudy-demos/locations/us-west1/keyRings/github-actions/cryptoKeys/signer/cryptoKeyVersions/1
       digest: ${{ needs.image.outputs.digest }}
