@@ -2,6 +2,16 @@ name: sign
 
 on:
   workflow_call:
+    inputs:
+      digest:
+        description: 'Image name with the SHA digest of the published image'
+        required: true
+        type: string
+      cosign_version:
+        description: 'Version of Cosign to use for signing'
+        default: v1.13.1
+        required: false
+        type: string
     secrets:
       registry:
         required: true
@@ -13,11 +23,6 @@ on:
         required: true
       cosign_version:
         required: false
-    inputs:
-      digest:
-        description: "Fully qualified image digest (from reg to sha)"
-        required: true
-        type: string
 
 jobs:
 
@@ -83,4 +88,15 @@ jobs:
     - name: Scan SBOM
       run: |
         ${{steps.grype.outputs.cmd}} --add-cpes-if-none sbom:sbom.spdx.json -o json > vulns.grype.json
+
+    - name: Attest Vulnerability
+      run: |
+        cosign attest --predicate vulns.grype.json --key ${{ secrets.key }} ${{ inputs.digest }}
+      env:
+        COSIGN_PASSWORD: ${{ steps.auth.outputs.access_token }}
       
+    - name: Verify Image
+      run: |
+        cosign verify-attestation --key ${{ secrets.key }} ${{ inputs.digest }}
+      env:
+        COSIGN_PASSWORD: ${{ steps.auth.outputs.access_token }}
