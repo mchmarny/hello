@@ -43,5 +43,6 @@ jobs:
       registry: ${{ secrets.REGISTRY_URI }}
       id_provider: ${{ secrets.ID_PROVIDER }}
       service_account: ${{ secrets.SERVICE_ACCOUNT }}
-      digest: ${{ needs.image.outputs.digest }}
       key: ${{ secrets.KMS_KEY }}
+    with:
+      digest: ${{ needs.image.outputs.digest }}
