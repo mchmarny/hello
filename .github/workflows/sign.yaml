@@ -37,6 +37,9 @@ jobs:
       contents: read
       id-token: write
     steps:
+    - name: Print Digest
+      run: |
+        echo ${{ inputs.digest }}
     - id: auth
       name: Get GCP token
       uses: google-github-actions/auth@v1
