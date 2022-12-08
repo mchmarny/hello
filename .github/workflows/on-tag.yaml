@@ -20,13 +20,13 @@ jobs:
     secrets:
       token: ${{ secrets.SNYK_TOKEN }}
     with:
-      go_version: "1.19.4"
+      go_version: "$GO_VERSION"
 
   image:
     uses: ./.github/workflows/image.yaml
     needs: test
     with:
-      go_version: "1.19.4"
+      go_version: "$GO_VERSION"
       registry: us-west1-docker.pkg.dev
       image: us-west1-docker.pkg.dev/cloudy-demos/hello-gha/hello
       id_provider: projects/799736955886/locations/global/workloadIdentityPools/github-pool/providers/github-provider
@@ -39,7 +39,5 @@ jobs:
       registry: us-west1-docker.pkg.dev
       id_provider: projects/799736955886/locations/global/workloadIdentityPools/github-pool/providers/github-provider
       service_account: github-actions-user@cloudy-demos.iam.gserviceaccount.com
-      digest: ${{ needs.steps.push.outputs.digest }}
+      digest: ${{needs.image.outputs.digest}}
       key: gcpkms://projects/cloudy-demos/locations/us-west1/keyRings/github-actions/cryptoKeys/signer/cryptoKeyVersions/1
-
-

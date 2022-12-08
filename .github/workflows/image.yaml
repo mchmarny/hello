@@ -32,6 +32,8 @@ jobs:
     permissions:
       contents: read
       id-token: write
+    outputs:
+      digest: ${{ steps.image.outputs.digest }}
     steps:
     - name: Setup Go
       uses: actions/setup-go@v3
@@ -86,9 +88,7 @@ jobs:
         push: true
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
-    - name: Print Digest
+    - name: Export Digest
+      id: image
       run: |
-        echo ${{ steps.push.outputs.digest }}
-    
-    outputs:
-      digest: ${{ steps.push.outputs.digest }}
+        echo "digest=${{ steps.push.outputs.digest }}" >> $GITHUB_OUTPUT
