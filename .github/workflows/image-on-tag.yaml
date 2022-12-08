@@ -74,11 +74,11 @@ jobs:
         images: |
           us-west1-docker.pkg.dev/cloudy-demos/hello-gha/hello
         tags: |
+          type=sha,enable=true,priority=100,format=short
           type=ref,event=branch
           type=ref,event=tag
           type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
-          type=sha
 
     - name: Docker login
       uses: docker/login-action@v2
@@ -88,6 +88,7 @@ jobs:
         password: ${{ steps.auth.outputs.access_token }}
   
     - name: Image build and push
+      id: push
       uses: docker/build-push-action@v3
       with:
         platforms: linux/amd64
@@ -114,5 +115,5 @@ jobs:
       run: |
         cosign sign --force --key ${{ env.KEY }} ${TAGS}
       env:
-        TAGS: ${{ steps.meta.outputs.tags }}
+        TAGS: ${{ steps.push.outputs.digest }}
         COSIGN_PASSWORD: ${{ steps.auth.outputs.access_token }}
