@@ -75,7 +75,7 @@ jobs:
 
     - name: Attest SBOM
       run: |
-        cosign attest --predicate sbom.spdx.json --key ${{ secrets.key }} ${{ inputs.digest }}
+        cosign attest --predicate sbom.spdx.json --key ${{ inputs.key }} ${{ inputs.digest }}
       env:
         COSIGN_PASSWORD: ${{ steps.auth.outputs.access_token }}
 
@@ -89,12 +89,12 @@ jobs:
 
     - name: Attest Vulnerability
       run: |
-        cosign attest --predicate vulns.grype.json --key ${{ secrets.key }} ${{ inputs.digest }}
+        cosign attest --predicate vulns.grype.json --key ${{ inputs.key }} ${{ inputs.digest }}
       env:
         COSIGN_PASSWORD: ${{ steps.auth.outputs.access_token }}
       
     - name: Verify Image
       run: |
-        cosign verify-attestation --key ${{ secrets.key }} ${{ inputs.digest }}
+        cosign verify-attestation --key ${{ inputs.key }} ${{ inputs.digest }}
       env:
         COSIGN_PASSWORD: ${{ steps.auth.outputs.access_token }}
