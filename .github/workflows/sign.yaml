@@ -70,17 +70,11 @@ jobs:
         image: ${{ inputs.digest }}
         registry-username: oauth2accesstoken
         registry-password: ${{ steps.auth.outputs.access_token }}
-        output-file: ./sbom.spdx.json
+        output-file: sbom.spdx.json
         format: spdx-json
 
     - name: List Dir
       run: ls
-
-    - name: Attest SBOM
-      run: |
-        cosign attest --predicate ./sbom.spdx.json --key ${{ inputs.key }} ${{ inputs.digest }}
-      env:
-        COSIGN_PASSWORD: ${{ steps.auth.outputs.access_token }}
 
     - name: Download Vulnerability Scanner
       uses: anchore/scan-action/download-grype@v3
