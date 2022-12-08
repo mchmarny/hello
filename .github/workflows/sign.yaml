@@ -74,6 +74,9 @@ jobs:
         artifact-name: sbom.spdx.json
         format: spdx-json
 
+    - name: List Dir
+      run: ls
+
     - name: Attest SBOM
       run: |
         cosign attest --predicate ./sbom.spdx.json --key ${{ inputs.key }} ${{ inputs.digest }}
