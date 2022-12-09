@@ -1,4 +1,4 @@
-# hellow
+# hello
 
 Demo repo used to illustrate build pipeline using [Cloud Build](https://cloud.google.com/build) and [GitHub Actions](https://github.com/features/actions). In both cases, the image is pushed to [Artifact Registry](https://cloud.google.com/artifact-registry):
 
