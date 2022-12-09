@@ -1,0 +1,14 @@
+#!/bin/bash
+
+DIR="$(dirname "$0")"
+. "${DIR}/config"
+
+set -o errexit
+set -o pipefail
+
+
+# clusters
+gcloud beta container clusters delete $CLUSTER_NAME \
+    --project $PROJECT_ID \
+    --zone $CLUSTER_ZONE \
+    --async

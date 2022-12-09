@@ -103,12 +103,12 @@ jobs:
 
     - name: Attest Vulnerability
       run: |
-        cosign attest --predicate vulns.grype.json --key ${{ inputs.key }} ${{ inputs.digest }}
+        cosign attest --predicate vulns.grype.json --type vuln --key ${{ inputs.key }} ${{ inputs.digest }}
       env:
         COSIGN_PASSWORD: ${{ steps.auth.outputs.access_token }}
       
     - name: Verify Image
       run: |
-        cosign verify-attestation --key ${{ inputs.key }} ${{ inputs.digest }}
+        cosign verify-attestation --type=vuln --key ${{ inputs.key }} ${{ inputs.digest }}
       env:
         COSIGN_PASSWORD: ${{ steps.auth.outputs.access_token }}
