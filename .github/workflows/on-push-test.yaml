@@ -1,0 +1,33 @@
+name: test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+
+# Using config job to work around limitation in GitHub Actions
+# where you can't use env or inputs to pass to multiple reusable jobs.
+# Context: https://github.com/community/community/discussions/17554.
+  config:
+    runs-on: ubuntu-latest
+    env:
+      VAR1: var1-value
+    outputs:
+      var-one: ${{ steps.args.outputs.var-one }}
+    steps:
+      - id: args
+        run: |
+          echo "var-one=${{env.VAR1}}" >> "$GITHUB_OUTPUT"
+
+  print:
+    runs-on: ubuntu-latest
+    needs: config
+    steps:
+      - id: args
+        run: |
+          echo "var-one: '${{ needs.config.outputs.var-one }}'"
