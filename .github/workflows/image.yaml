@@ -7,13 +7,15 @@ on:
         required: true
       registry:
         required: true
-      image:
-        required: true
       id_provider:
         required: true
       service_account:
         required: true
     input:
+      image:
+        description: 'Image URI without the label or sha'
+        required: true
+        type: string
       go_version:
         description: 'Version og Go to use for tests'
         default: '1.19.4'
@@ -76,7 +78,7 @@ jobs:
       uses: docker/metadata-action@v4
       with:
         images: |
-          ${{ secrets.image }}
+          ${{ inputs.image }}
         tags: |
           type=raw,enable=true,value=${{ env.RELEASE_VERSION }}
           type=raw,enable=true,value=${{ env.GITHUB_SHA }}
