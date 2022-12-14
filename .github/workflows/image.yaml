@@ -101,4 +101,4 @@ jobs:
     - name: Export Digest
       id: image
       run: |
-        echo "digest=${{ secrets.image }}@${{ steps.push.outputs.digest }}" >> $GITHUB_OUTPUT
+        echo "digest=${{ inputs.image }}@${{ steps.push.outputs.digest }}" >> $GITHUB_OUTPUT

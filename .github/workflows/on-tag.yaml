@@ -1,17 +1,9 @@
 name: publish
 
-# on:  
-#   push:
-#     tags:
-#       - 'v*.*.*'
-
-on:
+on:  
   push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+    tags:
+      - 'v*.*.*'
 
 # Using secrets for potentially not private data to workaround limitation in 
 # GitHub Actions where you can't use env vars or shared inputs to pass across 
@@ -34,7 +26,7 @@ jobs:
       service_account: ${{ secrets.SERVICE_ACCOUNT }}
     with:
       image: us-west1-docker.pkg.dev/cloudy-demos/hello-gha/hello
-      
+
 
   sign:
     uses: ./.github/workflows/sign.yaml
