@@ -24,7 +24,10 @@ jobs:
     steps:
       - id: args
         run: |
+          echo "text<<EOF" >> $GITHUB_OUTPUT
           echo "$(cat ci.config)" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> $GITHUB_OUTPUT
+          
 
   print:
     runs-on: ubuntu-latest
