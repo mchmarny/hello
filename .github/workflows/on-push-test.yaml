@@ -15,14 +15,16 @@ jobs:
 # Context: https://github.com/community/community/discussions/17554.
   config:
     runs-on: ubuntu-latest
-    env:
-      VAR1: var1-value
     outputs:
-      var-one: ${{ steps.args.outputs.var-one }}
+      kms-key: ${{ steps.args.outputs.kms-key }}
+      id-provider: ${{ steps.args.outputs.id-provider }}
+      service-account: ${{ steps.args.outputs.service-account }}
+      registry-uri: ${{ steps.args.outputs.registry-uri }}
+      registry-name: ${{ steps.args.outputs.registry-name }}
     steps:
       - id: args
         run: |
-          echo "var-one=${{env.VAR1}}" >> "$GITHUB_OUTPUT"
+          echo "$(cat ci.config)" >> "$GITHUB_OUTPUT"
 
   print:
     runs-on: ubuntu-latest
@@ -30,4 +32,8 @@ jobs:
     steps:
       - id: args
         run: |
-          echo "var-one: '${{ needs.config.outputs.var-one }}'"
+          echo "kms-key: '${{ needs.config.outputs.kms-key }}'"
+          echo "id-provider: '${{ needs.config.outputs.id-provider }}'"
+          echo "service-account: '${{ needs.config.outputs.service-account }}'"
+          echo "registry-uri: '${{ needs.config.outputs.registry-uri }}'"
+          echo "registry-name: '${{ needs.config.outputs.registry-name }}'"
