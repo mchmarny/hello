@@ -34,6 +34,7 @@ jobs:
       service_account: ${{ secrets.SERVICE_ACCOUNT }}
     with:
       image: us-west1-docker.pkg.dev/cloudy-demos/hello-gha/hello
+      
 
   sign:
     uses: ./.github/workflows/sign.yaml
