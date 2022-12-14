@@ -2,25 +2,18 @@ name: sign
 
 on:
   workflow_call:
-    inputs:
+    secrets:
       registry:
-        description: 'Registry URI'
         required: true
-        type: string
       id_provider:
-        description: 'Fully qualified path of the OIDC provider'
         required: true
-        type: string
       service_account:
-        description: 'Service account email to use to auth to the provider'
-        required: true
-        type: string
-      digest:
-        description: 'Image name with the SHA digest of the published image'
-        required: true
-        type: string
+        required: true 
       key:
-        description: 'Fully qualified path of the KMS key'
+        required: true
+    inputs:
+      digest:
+        description: 'Fully qualified URI of the image with its digest'
         required: true
         type: string
       cosign_version:
@@ -52,8 +45,8 @@ jobs:
       uses: google-github-actions/auth@v1
       with:
           token_format: "access_token"
-          workload_identity_provider: ${{ inputs.id_provider }}
-          service_account: ${{ inputs.service_account }}
+          workload_identity_provider: ${{ secrets.id_provider }}
+          service_account: ${{ secrets.service_account }}
     
     - name: Install Cosign
       uses: sigstore/cosign-installer@main
@@ -63,15 +56,15 @@ jobs:
     - name: Auth Cosign
       run: |
         cosign version
-        cosign login ${{ inputs.registry }} --username=oauth2accesstoken --password=${{ steps.auth.outputs.access_token }}
+        cosign login ${{ secrets.registry }} --username=oauth2accesstoken --password=${{ steps.auth.outputs.access_token }}
     
     - name: Get KMS Key
       run: |
-        cosign generate-key-pair --kms ${{ inputs.key }}
+        cosign generate-key-pair --kms ${{ secrets.key }}
     
     - name: Sign Image
       run: |
-        cosign sign --force --key ${{ inputs.key }} ${{ inputs.digest }}
+        cosign sign --force --key ${{ secrets.key }} ${{ inputs.digest }}
       env:
         COSIGN_PASSWORD: ${{ steps.auth.outputs.access_token }}
 
@@ -103,12 +96,12 @@ jobs:
 
     - name: Attest Vulnerability
       run: |
-        cosign attest --predicate vulns.grype.json --type vuln --key ${{ inputs.key }} ${{ inputs.digest }}
+        cosign attest --predicate vulns.grype.json --type vuln --key ${{ secrets.key }} ${{ inputs.digest }}
       env:
         COSIGN_PASSWORD: ${{ steps.auth.outputs.access_token }}
       
     - name: Verify Image
       run: |
-        cosign verify-attestation --type=vuln --key ${{ inputs.key }} ${{ inputs.digest }}
+        cosign verify-attestation --type=vuln --key ${{ secrets.key }} ${{ inputs.digest }}
       env:
         COSIGN_PASSWORD: ${{ steps.auth.outputs.access_token }}
