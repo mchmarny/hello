@@ -11,7 +11,7 @@ on:
         required: true
       service_account:
         required: true
-    input:
+    inputs:
       image:
         description: 'Image URI without the label or sha'
         required: true
