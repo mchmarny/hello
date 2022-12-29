@@ -52,4 +52,4 @@ jobs:
         platforms: linux/amd64
         context: deploy/kritis-signer
         push: true
-        tags: us-docker.pkg.dev/cloudy-demos/kritis:latest
+        tags: us-docker.pkg.dev/cloudy-demos/kritis/kritis:latest
