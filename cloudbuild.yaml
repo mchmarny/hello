@@ -25,7 +25,7 @@ steps:
   - id: build
     name: gcr.io/cloud-builders/docker
     entrypoint: /bin/bash
-    waitFor: ["analyze"]
+    waitFor: ["test"]
     args:
     - -c
     - |
