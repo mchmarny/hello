@@ -43,7 +43,7 @@ jobs:
 
     - name: Build Bin
       run: |
-        CGO_ENABLED=0 go build -ldflags "-extldflags -static -X github.com/grafeas/kritis/cmd/kritis/version.Commit=${{ env.GITHUB_SHA }} -X github.com/grafeas/kritis/cmd/kritis/version.Version=v0.2.2-demo -w -s" -o deploy/kritis-signer/out/signer
+        CGO_ENABLED=0 go build -ldflags "-extldflags -static -X cmd/kritis/version.Commit= -X cmd/kritis/version.Version=v0.2.2-demo -w -s" -o deploy/kritis-signer/out/signer cmd/kritis/signer/main.go
     
     - name: Image Push
       id: push
