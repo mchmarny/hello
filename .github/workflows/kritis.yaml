@@ -1,0 +1,52 @@
+name: kritis
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+
+  image:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+
+    - name: Setup Go
+      uses: actions/setup-go@v3
+    
+    - name: Checkout Code
+      uses: actions/checkout@v3
+      with:
+        repository: github.com/grafeas/kritis
+
+    
+    - id: auth
+      name: Get GCP token
+      uses: google-github-actions/auth@v1
+      with:
+          token_format: "access_token"
+          workload_identity_provider: ${{ secrets.ID_PROVIDER }}
+          service_account: ${{ secrets.SERVICE_ACCOUNT }}
+    
+    
+    - name: Registry Auth
+      uses: docker/login-action@v2
+      with:
+        registry: us-docker.pkg.dev/cloudy-demos/kritis
+        username: oauth2accesstoken
+        password: ${{ steps.auth.outputs.access_token }}
+    
+    - name: Image Push
+      id: push
+      uses: docker/build-push-action@v3
+      with:
+        platforms: linux/amd64
+        context: deploy/kritis-signer
+        push: true
+        tags: us-docker.pkg.dev/cloudy-demos/kritis:latest
