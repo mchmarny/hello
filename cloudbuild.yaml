@@ -7,7 +7,6 @@ substitutions:
   _POOL_NAME: demo-pool
   _GO_VERSION: "1.19"
   _SBOM_BUILDER: v0.3.7
-  _SNYK_SECRET_URI: projects/799736955886/secrets/snyk-token/versions/1
 
 steps:
   # Go test
@@ -21,18 +20,6 @@ steps:
     - |
       go test -short -count=1 -race -covermode=atomic \
         -coverprofile=cover.out ./...
-
-  # Static code analysis
-  - id: analyze
-    name: snyk/snyk:golang
-    entrypoint: /bin/bash
-    waitFor: ["test"]
-    args:
-    - '-c'
-    - |-
-      snyk config set api=$$SNYK_TOKEN
-      snyk test --severity-threshold=medium
-    secretEnv: ['SNYK_TOKEN']
 
   # Build image
   - id: build
