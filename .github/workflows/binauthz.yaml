@@ -1,8 +1,8 @@
-name: kritis
+name: binauthz
 
 on:
   schedule:
-    - cron:  "3 * * * *"
+    - cron:  "6 * * * *"
 
 jobs:
 
@@ -19,7 +19,7 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v3
       with:
-        repository: grafeas/kritis
+        repository: GoogleCloudPlatform/cloud-builders-community
 
     - id: auth
       name: Get GCP token
@@ -29,23 +29,18 @@ jobs:
           workload_identity_provider: ${{ secrets.ID_PROVIDER }}
           service_account: ${{ secrets.SERVICE_ACCOUNT }}
     
-    
     - name: Registry Auth
       uses: docker/login-action@v2
       with:
         registry: us-west1-docker.pkg.dev/cloudy-demos/tools
         username: oauth2accesstoken
         password: ${{ steps.auth.outputs.access_token }}
-
-    - name: Build Bin
-      run: |
-        CGO_ENABLED=0 go build -ldflags "-extldflags -static -X cmd/kritis/version.Commit= -X cmd/kritis/version.Version=v0.2.2-demo -w -s" -o deploy/kritis-signer/out/signer cmd/kritis/signer/main.go
     
     - name: Image Push
       id: push
       uses: docker/build-push-action@v3
       with:
         platforms: linux/amd64
-        context: deploy/kritis-signer
+        context: binauthz-attestation
         push: true
-        tags: us-west1-docker.pkg.dev/cloudy-demos/tools/kritis-signer:latest
+        tags: us-west1-docker.pkg.dev/cloudy-demos/tools/binauthz-attestor:latest
