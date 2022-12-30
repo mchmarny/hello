@@ -1,12 +1,8 @@
 name: kritis
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+  schedule:
+    - cron:  "0 * * * *"
 
 jobs:
 
@@ -52,4 +48,4 @@ jobs:
         platforms: linux/amd64
         context: deploy/kritis-signer
         push: true
-        tags: us-docker.pkg.dev/cloudy-demos/kritis/kritis:latest
+        tags: us-docker.pkg.dev/cloudy-demos/kritis/signer:latest
